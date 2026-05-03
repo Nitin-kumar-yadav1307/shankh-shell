@@ -21,7 +21,7 @@ int main() {
    }
    else if(input.substr(0,5) == "type "){
       if(input.substr(5) == "echo" || input.substr(5) == "exit" || input.substr(5) == "type"){
-        std::cout << input.substr(5) <<"shell builtin"<< std::endl;
+        std::cout << input.substr(5) <<" is a shell builtin"<< std::endl;
       }
       std::cout<<input<<"invalid_command: not found"<< std::endl;
    }
