@@ -23,7 +23,9 @@ int main() {
       if(input.substr(5) == "echo" || input.substr(5) == "exit" || input.substr(5) == "type"){
         std::cout << input.substr(5) <<" is a shell builtin"<< std::endl;
       }
-      std::cout<<" invalid_command: not found"<< std::endl;
+      else {
+        std::cout << input.substr(5) << ": not found" << std::endl;
+      }
    }
    else{
      std::cout<<input<<": command not found"<< std::endl;
