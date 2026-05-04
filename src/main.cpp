@@ -24,7 +24,13 @@ int main() {
         std::cout << input.substr(5) <<" is a shell builtin"<< std::endl;
       }
       else {
-        std::cout << input.substr(5) << ": not found" << std::endl;
+         if(input.substr(5) == "ls" || input.substr(5) == "grep" || input.substr(5) == "cd"){
+          std::cout<<input.substr(5)<<" is /usr/local/bin/"<<input.substr(5)<< std::endl;
+         }
+         else{
+             std::cout << input.substr(5) << ": not found" << std::endl;
+         }
+        
       }
    }
    else{
