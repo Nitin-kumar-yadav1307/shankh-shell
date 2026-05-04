@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <sys/stat.h>
+#include <unistd.h>
 
 int main() {
   // Flush after every std::cout / std:cerr
@@ -20,15 +22,44 @@ int main() {
      std::cout << input.substr(5) << std::endl;
    }
    else if(input.substr(0,5) == "type "){
-      if(input.substr(5) == "echo" || input.substr(5) == "exit" || input.substr(5) == "type"){
-        std::cout << input.substr(5) <<" is a shell builtin"<< std::endl;
+      std::string command = input.substr(5);
+      if (command == "echo" || command == "exit" || command == "type") {
+        std::cout << command << " is a shell builtin" << std::endl;
       }
       else {
-         if(input.substr(5) == "ls" || input.substr(5) == "grep" || input.substr(5) == "cd"){
-          std::cout<<input.substr(5)<<" is /usr/local/bin/"<<input.substr(5)<< std::endl;
-         }
-         else{
-             std::cout << input.substr(5) << ": not found" << std::endl;
+
+          char *pathEnv = std::getenv("PATH");
+        std::string pathStr(pathEnv ? pathEnv : "");
+
+        bool found = false;
+        size_t start = 0;
+        size_t end = pathStr.find(':');
+        
+        while (start < pathStr.length()) {
+          std::string dir;
+          if (end == std::string::npos) {
+            dir = pathStr.substr(start);
+          } else {
+            dir = pathStr.substr(start, end - start);
+          }
+          std::string fullPath = dir + "/" + command;
+
+          struct stat st;
+          if (stat(fullPath.c_str(), &st) == 0) {
+            if (access(fullPath.c_str(), X_OK) == 0) {
+              std::cout << command << " is " << fullPath << std::endl;
+              found = true;
+              break;
+            }
+          }
+          if (end == std::string::npos) {
+            break;
+          }
+          start = end + 1;
+          end = pathStr.find(':', start);
+        }
+        if (!found) {
+          std::cout << command << ": not found" << std::endl;
          }
         
       }
