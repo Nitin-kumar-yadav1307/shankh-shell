@@ -83,14 +83,24 @@ int main() {
 
      std::cout  << std::endl;
    }
-   else if(command == "pwd"){
-     char buffer[PATH_MAX];    
-    if(getcwd(buffer, sizeof(buffer)) != nullptr){
-    std::cout << buffer << std::endl;
-} else {
-    std::cerr << "pwd: error getting directory" << std::endl;
-}
+    else if(command == "pwd"){
+        char buffer[PATH_MAX];    
+        if(getcwd(buffer, sizeof(buffer)) != nullptr){
+        std::cout << buffer << std::endl;
+    } else {
+        std::cerr << "pwd: error getting directory" << std::endl;
+    }   
+   }    
+
+   else if(command == "cd"){
+    std::string path = tokens[1];
+    int result =  chdir(path.c_str) ;
+     if(result == -1){
+        std::cout<<"cd: "<<path<<": "<<"No such file or directory"<<std::endl;
+     } 
    }
+
+
     else if (command == "type") {
             if (tokens.size() < 2) continue;
             std::string target = tokens[1];
