@@ -11,11 +11,30 @@
 //helper-> split inputs
 std::vector<std::string> splitInput(const std::string& input) {
     std::vector<std::string> tokens;
-    std::istringstream ss(input);
-    std::string token;
-    while (ss >> token) {
-        tokens.push_back(token);
+    std::string currentToken = "";
+    bool quoteMode = false;
+
+    for (int i = 0; i < input.length(); i++) {
+        char c = input[i];
+
+        if (c == '\'') {
+            quoteMode = !quoteMode;  // toggle quote mode, don't add ' to token
+        }
+        else if (c == ' ' && !quoteMode) {
+            if (!currentToken.empty()) {   // avoid empty tokens from multiple spaces
+                tokens.push_back(currentToken);
+                currentToken = "";         // reset for next token
+            }
+        }
+        else {
+            currentToken += c;             // add character to current token
+        }
     }
+
+    if (!currentToken.empty()) {           // save last token
+        tokens.push_back(currentToken);
+    }
+
     return tokens;
 }
 
