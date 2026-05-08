@@ -84,6 +84,7 @@ int main() {
      std::cout  << std::endl;
    }
    else if(command == "pwd"){
+     char buffer[PATH_MAX];    
     if(getcwd(buffer, sizeof(buffer)) != nullptr){
     std::cout << buffer << std::endl;
 } else {
