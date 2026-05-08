@@ -95,7 +95,7 @@ int main() {
             if (tokens.size() < 2) continue;
             std::string target = tokens[1];
 
-            if (target == "echo" || target == "exit" || target == "type") {
+            if (target == "echo" || target == "exit" || target == "type" || target == "pwd") {
                 std::cout << target << " is a shell builtin" << std::endl;
             } else {
                 std::string path = findInPath(target);
