@@ -94,12 +94,11 @@ int main() {
 
    else if(command == "cd"){
     std::string path = tokens[1];
-    int result =  chdir(path.c_str) ;
+    int result =  chdir(path.c_str()) ;
      if(result == -1){
         std::cout<<"cd: "<<path<<": "<<"No such file or directory"<<std::endl;
      } 
    }
-
 
     else if (command == "type") {
             if (tokens.size() < 2) continue;
