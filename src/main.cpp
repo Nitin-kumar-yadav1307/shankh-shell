@@ -1,4 +1,5 @@
 #include <iostream>
+#include<climits>
 #include <string>
 #include <vector>
 #include <sstream>
@@ -81,6 +82,13 @@ int main() {
     }
 
      std::cout  << std::endl;
+   }
+   else if(command == "pwd"){
+    if(getcwd(buffer, sizeof(buffer)) != nullptr){
+    std::cout << buffer << std::endl;
+} else {
+    std::cerr << "pwd: error getting directory" << std::endl;
+}
    }
     else if (command == "type") {
             if (tokens.size() < 2) continue;
