@@ -94,6 +94,9 @@ int main() {
 
    else if(command == "cd"){
     std::string path = tokens[1];
+    if(path == "~"){
+        path == getenv("HOME");
+    }
     int result =  chdir(path.c_str()) ;
      if(result == -1){
         std::cout<<"cd: "<<path<<": "<<"No such file or directory"<<std::endl;
