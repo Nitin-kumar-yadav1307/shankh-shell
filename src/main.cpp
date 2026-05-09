@@ -13,6 +13,8 @@ std::vector<std::string> splitInput(const std::string& input) {
     std::vector<std::string> tokens;
     std::string currentToken = "";
     bool quoteMode = false;
+    bool doubleQuoteMode = false;
+
 
     for (int i = 0; i < input.length(); i++) {
         char c = input[i];
@@ -20,7 +22,7 @@ std::vector<std::string> splitInput(const std::string& input) {
         if (c == '\'') {
             quoteMode = !quoteMode;  // toggle quote mode, don't add ' to token
         }
-        else if (c == ' ' && !quoteMode) {
+        else if (c == ' ' && !quoteMode && !doubleQuoteMode) {
             if (!currentToken.empty()) {   // avoid empty tokens from multiple spaces
                 tokens.push_back(currentToken);
                 currentToken = "";         // reset for next token
