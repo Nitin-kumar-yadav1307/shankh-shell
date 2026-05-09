@@ -19,7 +19,7 @@ std::vector<std::string> splitInput(const std::string& input) {
     for (int i = 0; i < input.length(); i++) {
         char c = input[i];
 
-        if (c == '\'') {
+        if (c == '\'' && !doubleQuoteMode) {
             singleQuoteMode = !singleQuoteMode;  // toggle quote mode, don't add ' to token
         }
         else if (c == '\"' && !singleQuoteMode) {
