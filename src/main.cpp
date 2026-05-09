@@ -22,6 +22,9 @@ std::vector<std::string> splitInput(const std::string& input) {
         if (c == '\'') {
             quoteMode = !quoteMode;  // toggle quote mode, don't add ' to token
         }
+        else if (c == '\"') {
+            doubleQuoteMode = !doubleQuoteMode;  // toggle quote mode, don't add ' to token
+        }
         else if (c == ' ' && !quoteMode && !doubleQuoteMode) {
             if (!currentToken.empty()) {   // avoid empty tokens from multiple spaces
                 tokens.push_back(currentToken);
