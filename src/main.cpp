@@ -1,3 +1,4 @@
+#include <cstdlib>  
 #include <iostream>
 #include<climits>
 #include <string>
@@ -6,6 +7,8 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <fcntl.h>
+
 
 
 //helper-> split inputs
@@ -99,8 +102,9 @@ int main() {
 
   while(true){
    std::cout << "$ ";
-
+   std::string redirectFile = "";
    std::string input;
+   int indextoken = -1 ;
    std:: getline(std::cin, input);
 
      if (input.empty()) continue;
@@ -108,14 +112,41 @@ int main() {
         std::vector<std::string> tokens = splitInput(input);
         std::string command = tokens[0];
 
+        for(int i = 0 ; tokens.size()>i ; i++){
+            if(tokens[i] == ">" || tokens[i] == "1>"){
+               indextoken = i ;
+               redirectFile = tokens[i+1];
+               break;
+            }
+        }
+
+        if(indextoken != -1){
+             tokens.erase(tokens.begin() + indextoken+1);  // erase filename
+            tokens.erase(tokens.begin() + indextoken);  // erase operator
+        }
+    
+         int fd = -1;  
+
+if(!redirectFile.empty()){
+    fd = open(redirectFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+}
         
  // --- builtins programs
+ int savedStdout = -1;
+        if (fd != -1) {
+            savedStdout = dup(1);
+            dup2(fd, 1);
+            close(fd);
+        }
+
+
+
    if(command == "exit"){
     break;
    }
-   if(command == "echo "){
+   else if(command == "echo"){
 
-    for(size_t i= 0 ; i<tokens.size();i++ ){
+    for(size_t i= 1 ; i<tokens.size();i++ ){
       if (i > 1) std::cout << " ";
         std::cout << tokens[i];
     }
@@ -123,6 +154,7 @@ int main() {
      std::cout  << std::endl;
    }
     else if(command == "pwd"){
+        
         char buffer[PATH_MAX];    
         if(getcwd(buffer, sizeof(buffer)) != nullptr){
         std::cout << buffer << std::endl;
@@ -146,7 +178,7 @@ int main() {
             if (tokens.size() < 2) continue;
             std::string target = tokens[1];
 
-            if (target == "echo" || target == "exit" || target == "type" || target == "pwd") {
+            if (target == "echo" || target == "exit" || target == "type" || target == "pwd" || target == "cd") {
                 std::cout << target << " is a shell builtin" << std::endl;
             } else {
                 std::string path = findInPath(target);
@@ -177,6 +209,11 @@ int main() {
                 pid_t pid = fork();
 
                 if (pid == 0) {
+
+                    if(fd != -1){
+                       dup2(fd, 1);
+                        close(fd);
+                    }
                     // Child process: replace itself with the program
                     execv(fullPath.c_str(), argv.data());
                     // execv only returns if it FAILED
@@ -190,6 +227,11 @@ int main() {
                     std::cerr << "fork failed" << std::endl;
                 }
             }
+        }
+
+        if(savedStdout != -1){
+            dup2(savedStdout, 1);
+            close(savedStdout);
         }
     }
 }
