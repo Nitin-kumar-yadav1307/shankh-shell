@@ -142,8 +142,8 @@ int main() {
     
           
          int savedStdout = -1;
-if(!redirectFile.empty()){
-     int fd = -1;
+          int fd = -1;
+  if(!redirectFile.empty()){
     fd = open(redirectFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fd != -1) {
             savedStdout = dup(1);
@@ -162,10 +162,7 @@ if (!stderrRedirectFile.empty()) {
     }
 }
 
-  if (savedStderr != -1) {
-    dup2(savedStderr, 2);
-    close(savedStderr);
-    }
+  
         
  // --- builtins programs
  
@@ -267,5 +264,9 @@ if (!stderrRedirectFile.empty()) {
             dup2(savedStdout, 1);
             close(savedStdout);
         }
+        if (savedStderr != -1) {
+       dup2(savedStderr, 2);
+       close(savedStderr);
+       }
     }
 }
