@@ -258,14 +258,17 @@ int main() {
 
                 if (pid == 0) {
 
-                    if(fd != -1){
-                       dup2(fd, 1);
-                        close(fd);
-                    }
+                  if (!redirectFile.empty()) {
+                        int stdoutFlags = O_WRONLY | O_CREAT | (appendMode ? O_APPEND : O_TRUNC);
+                        int stdoutFd = open(redirectFile.c_str(), stdoutFlags, 0644);
+                        dup2(stdoutFd, 1);
+                         close(stdoutFd);
+                        }
 
-                    if (!stderrRedirectFile.empty()) {
-                     int stderrFd = open(stderrRedirectFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-                     dup2(stderrFd, 2);
+                   if (!stderrRedirectFile.empty()) {
+                        int stderrFlags = O_WRONLY | O_CREAT | (stderrAppendMode ? O_APPEND : O_TRUNC);
+                        int stderrFd = open(stderrRedirectFile.c_str(), stderrFlags, 0644);
+                        dup2(stderrFd, 2);
                         close(stderrFd);
                     }
                     // Child process: replace itself with the program
