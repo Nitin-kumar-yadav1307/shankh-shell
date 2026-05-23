@@ -105,6 +105,8 @@ int main() {
    std::string redirectFile = "";
    std::string input;
    int indextoken = -1 ;
+   int stderrIndexToken = -1;
+   std::string stderrRedirectFile = "";
    std:: getline(std::cin, input);
 
      if (input.empty()) continue;
@@ -113,34 +115,60 @@ int main() {
         std::string command = tokens[0];
 
         for(int i = 0 ; tokens.size()>i ; i++){
+           
+             if(tokens[i] == "2>"){
+                stderrIndexToken = i;
+                stderrRedirectFile = tokens[i+1];
+                break;
+            }
+           
             if(tokens[i] == ">" || tokens[i] == "1>"){
                indextoken = i ;
                redirectFile = tokens[i+1];
                break;
             }
+           
         }
 
         if(indextoken != -1){
              tokens.erase(tokens.begin() + indextoken+1);  // erase filename
             tokens.erase(tokens.begin() + indextoken);  // erase operator
         }
-    
-         int fd = -1;  
 
+         if(stderrIndexToken != -1){
+             tokens.erase(tokens.begin() + stderrIndexToken+1);  // erase filename
+            tokens.erase(tokens.begin() + stderrIndexToken);  // erase operator
+        }
+    
+          
+         int savedStdout = -1;
 if(!redirectFile.empty()){
+     int fd = -1;
     fd = open(redirectFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-}
-        
- // --- builtins programs
- int savedStdout = -1;
-        if (fd != -1) {
+    if (fd != -1) {
             savedStdout = dup(1);
             dup2(fd, 1);
             close(fd);
         }
+}
+       
+int savedStderr = -1;
+if (!stderrRedirectFile.empty()) {
+    int stderrFd = open(stderrRedirectFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (stderrFd != -1) {
+        savedStderr = dup(2);
+        dup2(stderrFd, 2);
+        close(stderrFd);
+    }
+}
 
-
-
+  if (savedStderr != -1) {
+    dup2(savedStderr, 2);
+    close(savedStderr);
+    }
+        
+ // --- builtins programs
+ 
    if(command == "exit"){
     break;
    }
@@ -213,6 +241,12 @@ if(!redirectFile.empty()){
                     if(fd != -1){
                        dup2(fd, 1);
                         close(fd);
+                    }
+
+                    if (!stderrRedirectFile.empty()) {
+                     int stderrFd = open(stderrRedirectFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                     dup2(stderrFd, 2);
+                        close(stderrFd);
                     }
                     // Child process: replace itself with the program
                     execv(fullPath.c_str(), argv.data());
