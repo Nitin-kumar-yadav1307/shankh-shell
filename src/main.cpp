@@ -108,6 +108,8 @@ int main() {
    int stderrIndexToken = -1;
    std::string stderrRedirectFile = "";
    std:: getline(std::cin, input);
+   bool appendMode = false;
+  
 
      if (input.empty()) continue;
 
@@ -121,8 +123,16 @@ int main() {
                 stderrRedirectFile = tokens[i+1];
                 break;
             }
+
+            if(tokens[i] == ">>" || tokens[i] == "1>>"){
+                appendMode = true;
+                indextoken = i ;
+               redirectFile = tokens[i+1];
+                
+            }
            
             if(tokens[i] == ">" || tokens[i] == "1>"){
+               appendMode = false;
                indextoken = i ;
                redirectFile = tokens[i+1];
                break;
@@ -144,7 +154,8 @@ int main() {
          int savedStdout = -1;
           int fd = -1;
   if(!redirectFile.empty()){
-    fd = open(redirectFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    int flags = O_WRONLY | O_CREAT | (appendMode ? O_APPEND : O_TRUNC);
+   fd = open(redirectFile.c_str(), flags, 0644);
     if (fd != -1) {
             savedStdout = dup(1);
             dup2(fd, 1);
