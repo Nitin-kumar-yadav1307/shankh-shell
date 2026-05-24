@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <dirent.h>   // for DIR, opendir, readdir, closedir
 
 
 
@@ -27,6 +28,47 @@ char* myCompleter(const char* text , int state){
             if (std::string(b).rfind(text, 0) == 0)  // starts with what user typed?
                 matches.push_back(b);
         }
+
+       // Get PATH directories
+char* pathEnv = std::getenv("PATH");
+std::string pathStr(pathEnv ? pathEnv : "");
+
+size_t start = 0;
+size_t end = pathStr.find(':');
+
+while(start < pathStr.length()){
+    std::string dir;
+    if(end == std::string::npos)
+        dir = pathStr.substr(start);
+    else
+        dir = pathStr.substr(start, end - start);
+
+    // Open the directory
+    DIR* d = opendir(dir.c_str());
+    if(d){  // directory exists
+        struct dirent* entry;
+        while((entry = readdir(d)) != nullptr){
+            std::string filename(entry->d_name);
+            // check if filename starts with text
+            if(filename.rfind(text, 0) == 0){
+                // check if it's executable
+                std::string fullPath = dir + "/" + filename;
+                if(access(fullPath.c_str(), X_OK) == 0)
+                    matches.push_back(filename);
+            }
+        }
+        closedir(d);
+    }
+
+         if(end == std::string::npos) break;
+        start = end + 1;
+        end = pathStr.find(':', start);
+    }
+
+         if(matches.empty()){
+        std::cout << "\x07";
+        std::cout.flush();
+    }
     }
         if (index < matches.size())
          return strdup(matches[index++].c_str());
