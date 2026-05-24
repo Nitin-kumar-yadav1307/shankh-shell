@@ -20,7 +20,7 @@ char* myCompleter(const char* text , int state){
     static std::vector<std::string> matches ;
     static int index;
 
-    if(state = 0){
+    if(state == 0){
         matches.clear();
         index = 0 ;
          for (auto& b : {"echo","exit","pwd","cd","type"}) {
