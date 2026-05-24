@@ -8,10 +8,34 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+
 
 
 
 //helper-> split inputs
+
+char* myCompleter(const char* text , int state){
+    static vector<string> matches ;
+    static int index;
+
+    if(state = 0){
+        matches.clear();
+        index = 0 ;
+         for (auto& b : {"echo","exit","pwd","cd","type"}) {
+            if (string(b).rfind(text, 0) == 0)  // starts with what user typed?
+                matches.push_back(b);
+        }
+    }
+        if (index < matches.size())
+         return strdup(matches[index++].c_str());
+        return nullptr;
+}
+
+
+
+
 std::vector<std::string> splitInput(const std::string& input) {
     std::vector<std::string> tokens;
     std::string currentToken = "";
@@ -97,17 +121,21 @@ int main() {
   // Flush after every std::cout / std:cerr
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
-
+  rl_completion_entry_function = myCompleter
   // TODO: Uncomment the code below to pass the first stage
 
   while(true){
-   std::cout << "$ ";
+   //std::cout << "$ ";
    std::string redirectFile = "";
    std::string input;
    int indextoken = -1 ;
    int stderrIndexToken = -1;
    std::string stderrRedirectFile = "";
-   std:: getline(std::cin, input);
+   //std:: getline(std::cin, input);
+   char* raw = readline("$ ");
+    if (!raw) break;  // EOF
+    std::string input(raw);
+    free(raw);    
    bool appendMode = false;
    bool stderrAppendMode = false;
 
