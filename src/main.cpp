@@ -122,6 +122,7 @@ int main() {
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
   rl_completion_entry_function = myCompleter;
+  rl_completion_append_character = ' '; 
   // TODO: Uncomment the code below to pass the first stage
 
   while(true){
