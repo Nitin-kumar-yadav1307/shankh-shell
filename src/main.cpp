@@ -24,7 +24,7 @@ char* myCompleter(const char* text , int state){
         matches.clear();
         index = 0 ;
          for (auto& b : {"echo","exit","pwd","cd","type"}) {
-            if (string(b).rfind(text, 0) == 0)  // starts with what user typed?
+            if (std::string(b).rfind(text, 0) == 0)  // starts with what user typed?
                 matches.push_back(b);
         }
     }
