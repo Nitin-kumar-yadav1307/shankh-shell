@@ -17,7 +17,7 @@
 //helper-> split inputs
 
 char* myCompleter(const char* text , int state){
-    static vector<string> matches ;
+    static std::vector<string> matches ;
     static int index;
 
     if(state = 0){
@@ -121,7 +121,7 @@ int main() {
   // Flush after every std::cout / std:cerr
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
-  rl_completion_entry_function = myCompleter
+  rl_completion_entry_function = myCompleter;
   // TODO: Uncomment the code below to pass the first stage
 
   while(true){
