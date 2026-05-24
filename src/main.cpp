@@ -17,7 +17,7 @@
 //helper-> split inputs
 
 char* myCompleter(const char* text , int state){
-    static std::vector<string> matches ;
+    static std::vector<std::string> matches ;
     static int index;
 
     if(state = 0){
@@ -127,7 +127,7 @@ int main() {
   while(true){
    //std::cout << "$ ";
    std::string redirectFile = "";
-   std::string input;
+   //std::string input;
    int indextoken = -1 ;
    int stderrIndexToken = -1;
    std::string stderrRedirectFile = "";
