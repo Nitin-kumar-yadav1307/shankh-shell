@@ -20,32 +20,36 @@
 char* myCompleter(const char* text , int state){
     static std::vector<std::string> matches ;
     static int index;
+     
 
-    if(state == 0){
-        matches.clear();
+if(state == 0){
+    matches.clear();
         index = 0 ;
-         for (auto& b : {"echo","exit","pwd","cd","type"}) {
+        std::string line(rl_line_buffer);
+         
+     if(line.find(' ') == std::string::npos){
+           for (auto& b : {"echo","exit","pwd","cd","type"}) {
             if (std::string(b).rfind(text, 0) == 0)  // starts with what user typed?
                 matches.push_back(b);
         }
 
-       // Get PATH directories
-char* pathEnv = std::getenv("PATH");
-std::string pathStr(pathEnv ? pathEnv : "");
+        // Get PATH directories
+    char* pathEnv = std::getenv("PATH");
+    std::string pathStr(pathEnv ? pathEnv : "");
 
-size_t start = 0;
-size_t end = pathStr.find(':');
+    size_t start = 0;
+    size_t end = pathStr.find(':');
 
-while(start < pathStr.length()){
+    while(start < pathStr.length()){
     std::string dir;
-    if(end == std::string::npos)
+        if(end == std::string::npos)
         dir = pathStr.substr(start);
-    else
+        else
         dir = pathStr.substr(start, end - start);
 
-    // Open the directory
-    DIR* d = opendir(dir.c_str());
-    if(d){  // directory exists
+        // Open the directory
+        DIR* d = opendir(dir.c_str());
+        if(d){  // directory exists
         struct dirent* entry;
         while((entry = readdir(d)) != nullptr){
             std::string filename(entry->d_name);
@@ -58,18 +62,37 @@ while(start < pathStr.length()){
             }
         }
         closedir(d);
-    }
+     }
 
          if(end == std::string::npos) break;
         start = end + 1;
         end = pathStr.find(':', start);
-    }
+     }
 
          if(matches.empty()){
         std::cout << "\x07";
         std::cout.flush();
+        }
+
+        } else {
+            //  filename completion code
+            // opendir(".") + readdir + rfind check
+            DIR* d = opendir('.');
+            if(d){
+                struct dirent* entry;
+                while((entry = readdir(d)) != nullptr){
+                    std::string filename(entry->d_name);
+                    if(filename.rfind(text,0) == 0){
+                        matches.push_back(filename);
+
+                    }
+                } 
+                closedir(d);
+            }
+        }
+       
     }
-    }
+   
         if (index < matches.size())
          return strdup(matches[index++].c_str());
         return nullptr;
@@ -210,7 +233,7 @@ int main() {
                 appendMode = true;
                 indextoken = i ;
                redirectFile = tokens[i+1];
-                
+                break;
             }
            
             if(tokens[i] == ">" || tokens[i] == "1>"){
