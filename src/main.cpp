@@ -102,6 +102,7 @@ if(state == 0){
                     struct dirent* entry;
                     while((entry = readdir(d)) != nullptr){
                         std::string filename(entry->d_name);
+                          if(filename == "." || filename == "..") continue;
                         if(filename.rfind(text,0) == 0){
                         matches.push_back(filename);
 
