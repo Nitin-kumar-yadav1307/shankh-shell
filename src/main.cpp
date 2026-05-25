@@ -83,6 +83,18 @@ if(state == 0){
                 std::string directory = textStr.substr(0,lastSlash+1);
                 std::string prefix  = textStr.substr(lastSlash+1);
 
+                 DIR* d = opendir(directory.c_str());
+            if(d){
+                struct dirent* entry;
+                while((entry = readdir(d)) != nullptr){
+                        std::string filename(entry->d_name);
+                    if(filename.rfind(prefix, 0) == 0){
+                matches.push_back(directory + filename); // ← full path!
+            }
+        }
+        closedir(d);
+    }
+
             }
             else {
                 DIR* d = opendir(".");
