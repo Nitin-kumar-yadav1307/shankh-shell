@@ -80,8 +80,8 @@ if(state == 0){
             std::string textStr(text);// just conversion of char* from string
             size_t lastSlash = textStr.rfind('/'); // rfind find tha lastone of that char in string
             if(lastSlash != std::string::npos){ // npos->not found
-                std::string directory = textstr.substr(0,lastSlash+1);
-                std::string prefix  = textstr.substr(lastSlash+1);
+                std::string directory = textStr.substr(0,lastSlash+1);
+                std::string prefix  = textStr.substr(lastSlash+1);
 
             }
             else {
