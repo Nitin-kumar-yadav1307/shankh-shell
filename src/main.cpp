@@ -90,7 +90,16 @@ if(state == 0){
                         std::string filename(entry->d_name);
                         if(filename == "." || filename == "..") continue;
                     if(filename.rfind(prefix, 0) == 0){
-                matches.push_back(directory + filename); // ← full path!
+                  std::string fullPath = directory + filename;
+                    struct stat st;
+                    stat(fullPath.c_str(), &st);
+                    if(S_ISDIR(st.st_mode)){//S_ISDIR is a macro that checks if something is a directory.
+                        matches.push_back(filename + "/");
+                        rl_completion_append_character = '\0';
+                    } else {
+                                matches.push_back(filename);
+                            rl_completion_append_character = ' ';
+                    } // ← full path!
             }
         }
         closedir(d);
@@ -105,7 +114,16 @@ if(state == 0){
                         std::string filename(entry->d_name);
                           if(filename == "." || filename == "..") continue;
                         if(filename.rfind(text,0) == 0){
-                        matches.push_back(filename);
+                       std::string fullPath = "./" + filename;
+                       struct stat st;
+                        stat(fullPath.c_str(), &st);
+                        if(S_ISDIR(st.st_mode)){
+                                matches.push_back(directory + filename + "/");
+                                rl_completion_append_character = '\0';
+                        } else {
+                            matches.push_back(directory + filename);
+                            rl_completion_append_character = ' ';
+                        }
 
                     }
                 } 
