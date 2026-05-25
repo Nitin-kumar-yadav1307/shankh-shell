@@ -77,18 +77,28 @@ if(state == 0){
         } else {
             //  filename completion code
             // opendir(".") + readdir + rfind check
-            DIR* d = opendir(".");
-            if(d){
-                struct dirent* entry;
-                while((entry = readdir(d)) != nullptr){
-                    std::string filename(entry->d_name);
-                    if(filename.rfind(text,0) == 0){
+            std::string textStr(text);// just conversion of char* from string
+            size_t lastSlash = textStr.rfind('/'); // rfind find tha lastone of that char in string
+            if(lastSlash != std::string::npos){ // npos->not found
+                std::string directory = textstr.substr(0,lastSlash+1);
+                std::string prefix  = textstr.substr(lastSlash+1);
+
+            }
+            else {
+                DIR* d = opendir(".");
+                 if(d){
+                    struct dirent* entry;
+                    while((entry = readdir(d)) != nullptr){
+                        std::string filename(entry->d_name);
+                        if(filename.rfind(text,0) == 0){
                         matches.push_back(filename);
 
                     }
                 } 
                 closedir(d);
+        }
             }
+         
         }
        
     }
