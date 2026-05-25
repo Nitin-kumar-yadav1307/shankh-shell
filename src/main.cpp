@@ -77,7 +77,7 @@ if(state == 0){
         } else {
             //  filename completion code
             // opendir(".") + readdir + rfind check
-            DIR* d = opendir('.');
+            DIR* d = opendir(".");
             if(d){
                 struct dirent* entry;
                 while((entry = readdir(d)) != nullptr){
