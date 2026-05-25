@@ -94,10 +94,10 @@ if(state == 0){
                     struct stat st;
                     stat(fullPath.c_str(), &st);
                     if(S_ISDIR(st.st_mode)){//S_ISDIR is a macro that checks if something is a directory.
-                        matches.push_back(filename + "/");
+                        matches.push_back(directory+filename + "/");
                         rl_completion_append_character = '\0';
                     } else {
-                                matches.push_back(filename);
+                                matches.push_back(directory+filename);
                             rl_completion_append_character = ' ';
                     } // ← full path!
             }
@@ -121,7 +121,7 @@ if(state == 0){
                                 matches.push_back( filename + "/");
                                 rl_completion_append_character = '\0';
                         } else {
-                            matches.push_back(filename);
+                            matches.push_back( filename);
                             rl_completion_append_character = ' ';
                         }
 
