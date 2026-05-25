@@ -118,10 +118,10 @@ if(state == 0){
                        struct stat st;
                         stat(fullPath.c_str(), &st);
                         if(S_ISDIR(st.st_mode)){
-                                matches.push_back(directory + filename + "/");
+                                matches.push_back( filename + "/");
                                 rl_completion_append_character = '\0';
                         } else {
-                            matches.push_back(directory + filename);
+                            matches.push_back(filename);
                             rl_completion_append_character = ' ';
                         }
 
