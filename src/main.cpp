@@ -97,7 +97,11 @@ if(state == 0){
             close(fd[0]);
             dup2(fd[1], 1);   // stdout → pipe
             close(fd[1]);
-            execl(scriptPath.c_str(), scriptPath.c_str(), nullptr);
+           execl(scriptPath.c_str(), 
+                scriptPath.c_str(),   // argv[0] = program name
+                cmdName.c_str(),      // argv[1] = command name
+                text,                 // argv[2] = partial text
+                nullptr);
             exit(1);
         } else {
             // parent reads output
