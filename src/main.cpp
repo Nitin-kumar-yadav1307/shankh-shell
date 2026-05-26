@@ -458,6 +458,9 @@ int main() {
             std::cout << "complete: " << cmd << ": no completion specification" << std::endl;
         }
     }
+     else if(tokens[1] == "-r" && tokens.size() >= 3){  
+        completionSpecs.erase(tokens[2]);               // ← removes from map
+    }
 }
 
 
