@@ -80,7 +80,7 @@ if(state == 0){
 
 
     // extract command name (first word)
-    std::string line(rl_line_buffer);
+  
     std::string cmdName = line.substr(0, line.find(' '));
 
     // check if completer registered
@@ -120,6 +120,7 @@ if(state == 0){
                     matches.push_back(word);
             }
         }
+    }
    
             //  filename completion code
             // opendir(".") + readdir + rfind check
