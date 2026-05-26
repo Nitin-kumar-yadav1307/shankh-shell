@@ -76,7 +76,9 @@ if(state == 0){
         std::cout.flush();
         }
 
-        }else {
+        } else {
+
+
     // extract command name (first word)
     std::string line(rl_line_buffer);
     std::string cmdName = line.substr(0, line.find(' '));
@@ -97,7 +99,7 @@ if(state == 0){
             close(fd[1]);
             execl(scriptPath.c_str(), scriptPath.c_str(), nullptr);
             exit(1);
-        }  else if {
+        } else {
             // parent reads output
             close(fd[1]);
             char buffer[1024];
@@ -118,9 +120,7 @@ if(state == 0){
                     matches.push_back(word);
             }
         }
-    }
-    // existing filename completion below...
-    } else {
+   
             //  filename completion code
             // opendir(".") + readdir + rfind check
             std::string textStr(text);// just conversion of char* from string
