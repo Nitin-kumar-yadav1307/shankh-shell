@@ -76,7 +76,51 @@ if(state == 0){
         std::cout.flush();
         }
 
+        }else {
+    // extract command name (first word)
+    std::string line(rl_line_buffer);
+    std::string cmdName = line.substr(0, line.find(' '));
+
+    // check if completer registered
+    if(completionSpecs.count(cmdName) > 0){
+        std::string scriptPath = completionSpecs[cmdName];
+
+        // run script and read output
+        int fd[2];
+        pipe(fd);
+        pid_t pid = fork();
+
+        if(pid == 0){
+            // child
+            close(fd[0]);
+            dup2(fd[1], 1);   // stdout → pipe
+            close(fd[1]);
+            execl(scriptPath.c_str(), scriptPath.c_str(), nullptr);
+            exit(1);
         } else {
+            // parent reads output
+            close(fd[1]);
+            char buffer[1024];
+            std::string output = "";
+            int bytes;
+            while((bytes = read(fd[0], buffer, sizeof(buffer)-1)) > 0){
+                buffer[bytes] = '\0';
+                output += buffer;
+            }
+            close(fd[0]);
+            wait(nullptr);
+
+            // each line is a completion candidate
+            std::istringstream stream(output);
+            std::string word;
+            while(std::getline(stream, word)){
+                if(!word.empty())
+                    matches.push_back(word);
+            }
+        }
+    }
+    // existing filename completion below...
+    } else {
             //  filename completion code
             // opendir(".") + readdir + rfind check
             std::string textStr(text);// just conversion of char* from string
