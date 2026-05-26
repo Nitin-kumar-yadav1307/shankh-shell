@@ -104,6 +104,9 @@ if(state == 0){
         pid_t pid = fork();
 
         if(pid == 0){
+            // set environment variables
+             setenv("COMP_LINE", line.c_str(), 1);
+            setenv("COMP_POINT", std::to_string(line.length()).c_str(), 1);
             // child
             close(fd[0]);
             dup2(fd[1], 1);   // stdout → pipe
