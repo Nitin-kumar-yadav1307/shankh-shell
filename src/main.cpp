@@ -16,6 +16,7 @@
 
 
 //helper-> split inputs
+std::map<std::string, std::string> completionSpecs;
 
 char* myCompleter(const char* text , int state){
     static std::vector<std::string> matches ;
@@ -375,10 +376,22 @@ int main() {
         }
 
         else if(command == "complete"){
-            if(tokens.size()>=3 && tokens[1] == "-p"){
-                 std::cout << "complete: " << tokens[2] << ": no completion specification" << std::endl;
-            }
+    if(tokens[1] == "-C" && tokens.size() >= 4){
+        // tokens[2] = path, tokens[3] = command
+        completionSpecs[tokens[3]] = tokens[2];  // store
+        // no output
+    }
+    else if(tokens[1] == "-p" && tokens.size() >= 3){
+        std::string cmd = tokens[2];
+        if(completionSpecs.count(cmd) > 0){
+            // found → print it
+            std::cout << "complete -C '" << completionSpecs[cmd] << "' " << cmd << std::endl;
+        } else {
+            // not found 
+            std::cout << "complete: " << cmd << ": no completion specification" << std::endl;
         }
+    }
+}
 
 
         // --- External programs ---
