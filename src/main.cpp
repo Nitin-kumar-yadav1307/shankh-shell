@@ -374,6 +374,12 @@ int main() {
             }
         }
 
+        else if(command == "complete"){
+            if(tokens.size()>=3 && tokens[1] == "-p"){
+                 std::cout << "complete: " << tokens[2] << ": no completion specification" << std::endl;
+            }
+        }
+
 
         // --- External programs ---
         else {
