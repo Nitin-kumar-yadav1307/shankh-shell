@@ -86,6 +86,17 @@ if(state == 0){
     // check if completer registered
     if(completionSpecs.count(cmdName) > 0){
         std::string scriptPath = completionSpecs[cmdName];
+        // split line into words
+    std::vector<std::string> lineWords;
+    std::istringstream ss(line);
+    std::string w;
+    while(ss >> w) lineWords.push_back(w);
+
+    // get previous word
+    std::string prevWord = "";
+    if(lineWords.size() >= 2){
+    prevWord = lineWords[lineWords.size() - 2];
+    }
 
         // run script and read output
         int fd[2];
@@ -100,7 +111,8 @@ if(state == 0){
            execl(scriptPath.c_str(), 
                 scriptPath.c_str(),   // argv[0] = program name
                 cmdName.c_str(),      // argv[1] = command name
-                text,                 // argv[2] = partial text
+                text,                  // argv[2] = partial text
+                prevWord.c_str(),                
                 nullptr);
             exit(1);
         } else {
