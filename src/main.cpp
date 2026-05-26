@@ -11,6 +11,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <dirent.h>   // for DIR, opendir, readdir, closedir
+#include <map> 
 
 
 
