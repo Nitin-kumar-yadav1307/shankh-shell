@@ -97,7 +97,7 @@ if(state == 0){
             close(fd[1]);
             execl(scriptPath.c_str(), scriptPath.c_str(), nullptr);
             exit(1);
-        } else {
+        }  else if {
             // parent reads output
             close(fd[1]);
             char buffer[1024];
