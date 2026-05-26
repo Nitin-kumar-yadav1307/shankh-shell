@@ -125,8 +125,8 @@ if(state == 0){
             }
         }
     }
-   
-            //  filename completion code
+         if(matches.empty()){
+    //  filename completion code
             // opendir(".") + readdir + rfind check
             std::string textStr(text);// just conversion of char* from string
             size_t lastSlash = textStr.rfind('/'); // rfind find tha lastone of that char in string
@@ -181,6 +181,8 @@ if(state == 0){
                 closedir(d);
         }
             }
+}
+            
          
         }
        
