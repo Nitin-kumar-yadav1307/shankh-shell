@@ -28,7 +28,7 @@ if(state == 0){
         std::string line(rl_line_buffer);
          
      if(line.find(' ') == std::string::npos){
-           for (auto& b : {"echo","exit","pwd","cd","type"}) {
+           for (auto& b : {"echo","exit","pwd","cd","type","complete"}) {
             if (std::string(b).rfind(text, 0) == 0)  // starts with what user typed?
                 matches.push_back(b);
         }
@@ -362,7 +362,7 @@ int main() {
             if (tokens.size() < 2) continue;
             std::string target = tokens[1];
 
-            if (target == "echo" || target == "exit" || target == "type" || target == "pwd" || target == "cd") {
+            if (target == "echo" || target == "exit" || target == "type" || target == "pwd" || target == "cd" || target == "complete") {
                 std::cout << target << " is a shell builtin" << std::endl;
             } else {
                 std::string path = findInPath(target);
