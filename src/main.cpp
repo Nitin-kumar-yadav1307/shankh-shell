@@ -506,6 +506,14 @@ int main() {
     
     }
        else if(command == "jobs"){
+         //  check each job's current status
+    for(auto& job : jobs){
+        int status;
+        pid_t result = waitpid(job.pid, &status, WNOHANG);
+        if(result == job.pid && WIFEXITED(status)){
+            job.status = "Done";
+        }
+    }
     int total = jobs.size();
     for(int i = 0; i < total; i++){
         auto& job = jobs[i];
@@ -525,6 +533,12 @@ int main() {
                   << status
                   << job.command << "\n";
     }
+
+    jobs.erase(
+        std::remove_if(jobs.begin(), jobs.end(),
+            [](const Job& j){ return j.status == "Done"; }),
+        jobs.end()
+    );
 }
 
 
