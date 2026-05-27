@@ -30,7 +30,7 @@ if(state == 0){
         std::string line(rl_line_buffer);
          
      if(line.find(' ') == std::string::npos){
-           for (auto& b : {"echo","exit","pwd","cd","type","complete"}) {
+           for (auto& b : {"echo","exit","pwd","cd","type","complete","jobs"}) {
             if (std::string(b).rfind(text, 0) == 0)  // starts with what user typed?
                 matches.push_back(b);
         }
@@ -430,7 +430,7 @@ int main() {
             if (tokens.size() < 2) continue;
             std::string target = tokens[1];
 
-            if (target == "echo" || target == "exit" || target == "type" || target == "pwd" || target == "cd" || target == "complete") {
+            if (target == "echo" || target == "exit" || target == "type" || target == "pwd" || target == "cd" || target == "complete"  || target == "jobs") {
                 std::cout << target << " is a shell builtin" << std::endl;
             } else {
                 std::string path = findInPath(target);
@@ -461,6 +461,9 @@ int main() {
      else if(tokens[1] == "-r" && tokens.size() >= 3){  
         completionSpecs.erase(tokens[2]);               // ← removes from map
     }
+    else if(command == "jobs"){
+    // empty for now — no output
+}
 }
 
 
