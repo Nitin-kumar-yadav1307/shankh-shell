@@ -461,10 +461,11 @@ int main() {
      else if(tokens[1] == "-r" && tokens.size() >= 3){  
         completionSpecs.erase(tokens[2]);               // ← removes from map
     }
-    else if(command == "jobs"){
-    // empty for now — no output
-}
-}
+    
+    }
+        else if(command == "jobs"){
+        // empty for now — no output
+    }
 
 
         // --- External programs ---
