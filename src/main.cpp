@@ -526,12 +526,18 @@ int main() {
 
         // pad status to 24 chars
         std::string status = job.status;
-        while(status.length() < 24) status += " ";
+        while(status.length() < 20) status += " ";
+
+        // get command string, remove & if Done
+    std::string cmd = job.command;
+    if(job.status == "Done" && cmd.size() >= 2 && cmd.substr(cmd.size()-2) == " &"){
+    cmd = cmd.substr(0, cmd.size()-2);
+}
 
         std::cout << "[" << job.number << "]" 
                   << marker << "  "
                   << status
-                  << job.command << "\n";
+                  << cmd << "\n";
     }
 
     jobs.erase(
