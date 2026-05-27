@@ -14,7 +14,15 @@
 #include <map> 
 
 
+struct Job {
+    int number;
+    pid_t pid;
+    std::string command;
+    std::string status;
+};
 
+std::vector<Job> jobs;  // global list of jobs
+int nextJobNumber = 1;  // global counter
 
 //helper-> split inputs
 std::map<std::string, std::string> completionSpecs;
@@ -310,7 +318,14 @@ int main() {
    signal(SIGCHLD, [](int) {
     int saved = errno;
     int status;
-    while (waitpid(-1, &status, WNOHANG) > 0) {
+    pid_t pid;
+    while((pid = waitpid(-1, &status, WNOHANG)) > 0){
+        // find job and mark as done
+        for(auto& job : jobs){
+            if(job.pid == pid){
+                job.status = "Done";
+            }
+        }
     }
     errno = saved;
 });
@@ -491,7 +506,16 @@ int main() {
     
     }
         else if(command == "jobs"){
-        // empty for now — no output
+        for(auto& job : jobs){
+        // format: [1]+  Running                 sleep 10 &
+        std::string status = job.status;
+        // pad status to 24 chars total
+        while(status.length() < 24) status += " ";
+        
+        std::cout << "[" << job.number << "]+  " 
+                  << status 
+                  << job.command << "\n";
+    }
     }
 
 
@@ -536,6 +560,17 @@ int main() {
                     // Parent process: wait for child to finish
                    
                    if (background) {
+                      // build command string
+                         std::string cmdStr = "";
+                        for(size_t i = 0; i < tokens.size(); i++){
+                         if(i > 0) cmdStr += " ";
+                        cmdStr += tokens[i];
+                        }
+                        cmdStr += " &";
+
+                        // store job
+                        jobs.push_back({nextJobNumber++, pid, cmdStr, "Running"});
+
                          std::cout << "[1] " << pid << std::endl;
                         std::cout.flush();
                     }
