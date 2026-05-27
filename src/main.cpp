@@ -321,14 +321,19 @@ int main() {
      if (input.empty()) continue;
 
         std::vector<std::string> tokens = splitInput(input);
-        std::string command = tokens[0];
+       
 
         // check for background
         bool background = false;
         if(!tokens.empty() && tokens.back() == "&"){
         background = true;
+        tokens.pop_back();  // remove &
+    }
+        // also trim any empty tokens left behind
+        while(!tokens.empty() && tokens.back().empty()){
         tokens.pop_back();
-        }
+    }
+        std::string command = tokens[0];
 
         for(int i = 0 ; tokens.size()>i ; i++){
            
