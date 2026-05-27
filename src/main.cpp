@@ -310,12 +310,9 @@ int main() {
     signal(SIGCHLD, [](int) {
     int saved = errno;
     int status;
-    while(waitpid(-1, &status, WNOHANG) > 0);
+    while (waitpid(-1, &status, WNOHANG) > 0) {
+    }
     errno = saved;
-    // clear current line (erase "$ " prompt)
-    write(STDOUT_FILENO, "\r\033[K", 4);
-    rl_on_new_line();
-    rl_redisplay();
 });
   while(true){
    //std::cout << "$ ";
@@ -538,13 +535,10 @@ int main() {
                 } else if (pid > 0) {
                     // Parent process: wait for child to finish
                    
-                    if(background){
-                   std::cout << "[1] " << pid << std::endl;
-                    std::cout.flush();
-                     usleep(10000);
-                    rl_on_new_line();        // tell readline we're on a new line
-                   // rl_redisplay();          // redisplay the prompt cleanly
-                }
+                   if (background) {
+                         std::cout << "[1] " << pid << std::endl;
+                        std::cout.flush();
+                    }
                    else{
                         int status;
                         wait(&status);
