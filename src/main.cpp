@@ -531,7 +531,7 @@ int main() {
                    std::cout << "[1] " << pid << std::endl;
                     std::cout.flush();
                     rl_on_new_line();        // tell readline we're on a new line
-                    rl_redisplay();          // redisplay the prompt cleanly
+                   // rl_redisplay();          // redisplay the prompt cleanly
                 }
                    else{
                         int status;
