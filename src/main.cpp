@@ -639,9 +639,22 @@ int main() {
                         
 
                         // store job first
-                    Job newJob = {nextJobNumber, pid, cmdStr, "Running"};
-                    jobs.push_back(newJob);
+                    // find smallest available job number
+            int newNumber = 1;
+            while(true){
+                bool taken = false;
+                for(auto& j : jobs){
+                if(j.number == newNumber){
+                    taken = true;
+                    break;
+                    }
+                }
+                if(!taken) break;
+                newNumber++;
+            }
 
+        Job newJob = {newNumber, pid, cmdStr, "Running"};
+        jobs.push_back(newJob);
                     // then print using the stored job number
                     std::cout << "[" << newJob.number << "] " << pid << "\n";
                     std::cout.flush();
