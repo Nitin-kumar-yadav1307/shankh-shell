@@ -307,7 +307,7 @@ int main() {
   rl_completion_append_character = ' '; 
   // TODO: Uncomment the code below to pass the first stage
 
-    signal(SIGCHLD, [](int) {
+   signal(SIGCHLD, [](int) {
     int saved = errno;
     int status;
     while (waitpid(-1, &status, WNOHANG) > 0) {
@@ -541,7 +541,7 @@ int main() {
                     }
                    else{
                         int status;
-                        wait(&status);
+                        waitpid(pid, &status, 0);
                    }
                    
                 } else {
