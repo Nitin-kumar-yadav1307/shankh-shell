@@ -322,6 +322,13 @@ int main() {
         std::vector<std::string> tokens = splitInput(input);
         std::string command = tokens[0];
 
+        // check for background
+        bool background = false;
+        if(!tokens.empty() && tokens.back() == "&"){
+        background = true;
+        tokens.pop_back();
+        }
+
         for(int i = 0 ; tokens.size()>i ; i++){
            
             if(tokens[i] == "2>>"){
@@ -508,7 +515,7 @@ int main() {
                 } else if (pid > 0) {
                     // Parent process: wait for child to finish
                     int status;
-                    wait(&status);
+                   // wait(&status);
                 } else {
                     std::cerr << "fork failed" << std::endl;
                 }
