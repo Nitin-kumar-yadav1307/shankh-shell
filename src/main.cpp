@@ -307,6 +307,13 @@ int main() {
   rl_completion_append_character = ' '; 
   // TODO: Uncomment the code below to pass the first stage
 
+    signal(SIGCHLD, [](int) {
+    int saved = errno;
+    int status;
+    while(waitpid(-1, &status, WNOHANG) > 0);
+    errno = saved;
+    rl_on_new_line();
+    });
   while(true){
    //std::cout << "$ ";
    std::string redirectFile = "";
