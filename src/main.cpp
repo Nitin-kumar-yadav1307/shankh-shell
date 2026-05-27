@@ -577,8 +577,7 @@ int main() {
                         }
                         cmdStr += " &";
 
-                        // store job
-                        jobs.push_back({nextJobNumber++, pid, cmdStr, "Running"});
+                        
 
                         // store job first
                     Job newJob = {nextJobNumber, pid, cmdStr, "Running"};
