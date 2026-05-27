@@ -580,8 +580,15 @@ int main() {
                         // store job
                         jobs.push_back({nextJobNumber++, pid, cmdStr, "Running"});
 
-                         std::cout << "[1] " << pid << std::endl;
-                        std::cout.flush();
+                        // store job first
+                    Job newJob = {nextJobNumber, pid, cmdStr, "Running"};
+                    jobs.push_back(newJob);
+
+                    // then print using the stored job number
+                    std::cout << "[" << newJob.number << "] " << pid << "\n";
+                    std::cout.flush();
+
+                    nextJobNumber++;  // increment for next job
                     }
                    else{
                         int status;
