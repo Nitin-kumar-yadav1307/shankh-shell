@@ -312,8 +312,11 @@ int main() {
     int status;
     while(waitpid(-1, &status, WNOHANG) > 0);
     errno = saved;
+    // clear current line (erase "$ " prompt)
+    write(STDOUT_FILENO, "\r\033[K", 4);
     rl_on_new_line();
-    });
+    rl_redisplay();
+});
   while(true){
    //std::cout << "$ ";
    std::string redirectFile = "";
@@ -322,11 +325,8 @@ int main() {
    int stderrIndexToken = -1;
    std::string stderrRedirectFile = "";
    //std:: getline(std::cin, input);
-   // print prompt manually
-    std::cout << "$ ";
-    std::cout.flush();
-    rl_already_prompted = 1;
-    char* raw = readline("");  // empty string since we already printed prompt
+   
+    char* raw = readline("$ ");  // empty string since we already printed prompt
     if (!raw) break;  // EOF
     std::string input(raw);
     free(raw);    
