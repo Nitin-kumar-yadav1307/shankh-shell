@@ -514,10 +514,14 @@ int main() {
                     exit(1);
                 } else if (pid > 0) {
                     // Parent process: wait for child to finish
-                    int status;
-                   // wait(&status);
+                   
+                    if(background){
+                   std::cout << "[1] " << pid << std::endl;
+                   
                 } else {
-                    std::cerr << "fork failed" << std::endl;
+                   // std::cerr << "fork failed" << std::endl;
+                    int status;
+                   wait(&status);
                 }
             }
         }
