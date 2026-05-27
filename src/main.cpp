@@ -27,6 +27,51 @@ int nextJobNumber = 1;  // global counter
 //helper-> split inputs
 std::map<std::string, std::string> completionSpecs;
 
+void reapJobs(){
+    // check each job
+    for(auto& job : jobs){
+        int status;
+        pid_t result = waitpid(job.pid, &status, WNOHANG);
+        if(result == job.pid && WIFEXITED(status)){
+            job.status = "Done";
+        }
+    }
+
+    // print and remove Done jobs
+    int total = jobs.size();
+    for(int i = 0; i < total; i++){
+        auto& job = jobs[i];
+        if(job.status == "Done"){
+            // determine marker
+            char marker;
+            if(i == total - 1)      marker = '+';
+            else if(i == total - 2) marker = '-';
+            else                    marker = ' ';
+
+            // strip & from command
+            std::string cmd = job.command;
+            if(cmd.size() >= 2 && cmd.substr(cmd.size()-2) == " &")
+                cmd = cmd.substr(0, cmd.size()-2);
+
+            // pad status
+            std::string status = "Done";
+            while(status.length() < 20) status += " ";
+
+            std::cout << "[" << job.number << "]"
+                      << marker << "  "
+                      << status
+                      << cmd << "\n";
+        }
+    }
+
+    // remove Done jobs
+    jobs.erase(
+        std::remove_if(jobs.begin(), jobs.end(),
+            [](const Job& j){ return j.status == "Done"; }),
+        jobs.end()
+    );
+}
+
 char* myCompleter(const char* text , int state){
     static std::vector<std::string> matches ;
     static int index;
@@ -337,7 +382,7 @@ int main() {
    int stderrIndexToken = -1;
    std::string stderrRedirectFile = "";
    //std:: getline(std::cin, input);
-   
+   reapJobs();  
     char* raw = readline("$ ");  // empty string since we already printed prompt
     if (!raw) break;  // EOF
     std::string input(raw);
@@ -507,13 +552,7 @@ int main() {
     }
        else if(command == "jobs"){
          //  check each job's current status
-    for(auto& job : jobs){
-        int status;
-        pid_t result = waitpid(job.pid, &status, WNOHANG);
-        if(result == job.pid && WIFEXITED(status)){
-            job.status = "Done";
-        }
-    }
+    reapJobs();  
     int total = jobs.size();
     for(int i = 0; i < total; i++){
         auto& job = jobs[i];
@@ -540,11 +579,7 @@ int main() {
                   << cmd << "\n";
     }
 
-    jobs.erase(
-        std::remove_if(jobs.begin(), jobs.end(),
-            [](const Job& j){ return j.status == "Done"; }),
-        jobs.end()
-    );
+    
 }
 
 
