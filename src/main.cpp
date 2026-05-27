@@ -516,7 +516,10 @@ int main() {
                     // Parent process: wait for child to finish
                    
                     if(background){
-                   std::cout << "[1] " << pid << std::endl;}
+                   std::cout << "[1] " << pid << std::endl;
+                    rl_on_new_line();        // tell readline we're on a new line
+                    rl_redisplay();          // redisplay the prompt cleanly
+                }
                    else{
                         int status;
                         wait(&status);
