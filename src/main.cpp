@@ -242,13 +242,19 @@ std::vector<std::string> splitInput(const std::string& input) {
                 currentToken += '\\';
             }
         }
-        else if (c == '&' && !singleQuoteMode && !doubleQuoteMode) {
-            if (!currentToken.empty()) {   // avoid empty tokens from multiple spaces
-                tokens.push_back(currentToken);
-                currentToken = "";         // reset for next token
-            }
-             tokens.push_back("&"); 
+       else if (c == ' ' && !singleQuoteMode && !doubleQuoteMode) {
+        if (!currentToken.empty()) {
+        tokens.push_back(currentToken);
+        currentToken = "";
         }
+    }
+    else if (c == '&' && !singleQuoteMode && !doubleQuoteMode) {
+        if (!currentToken.empty()) {
+             tokens.push_back(currentToken);
+             currentToken = "";
+    }
+    tokens.push_back("&");
+}
         else {
             currentToken += c;             // add character to current token
         }
