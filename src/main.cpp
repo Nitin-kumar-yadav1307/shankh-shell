@@ -505,18 +505,27 @@ int main() {
     }
     
     }
-        else if(command == "jobs"){
-        for(auto& job : jobs){
-        // format: [1]+  Running                 sleep 10 &
-        std::string status = job.status;
-        // pad status to 24 chars total
-        while(status.length() < 24) status += " ";
+       else if(command == "jobs"){
+    int total = jobs.size();
+    for(int i = 0; i < total; i++){
+        auto& job = jobs[i];
         
-        std::cout << "[" << job.number << "]+  " 
-                  << status 
+        // determine marker
+        char marker;
+        if(i == total - 1)        marker = '+';  // last job
+        else if(i == total - 2)   marker = '-';  // second to last
+        else                      marker = ' ';  // everything else
+
+        // pad status to 24 chars
+        std::string status = job.status;
+        while(status.length() < 24) status += " ";
+
+        std::cout << "[" << job.number << "]" 
+                  << marker << "  "
+                  << status
                   << job.command << "\n";
     }
-    }
+}
 
 
         // --- External programs ---
