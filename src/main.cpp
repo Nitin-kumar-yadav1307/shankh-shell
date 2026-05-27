@@ -242,11 +242,12 @@ std::vector<std::string> splitInput(const std::string& input) {
                 currentToken += '\\';
             }
         }
-        else if (c == ' ' && !singleQuoteMode && !doubleQuoteMode) {
+        else if (c == '&' && !singleQuoteMode && !doubleQuoteMode) {
             if (!currentToken.empty()) {   // avoid empty tokens from multiple spaces
                 tokens.push_back(currentToken);
                 currentToken = "";         // reset for next token
             }
+             tokens.push_back("&"); 
         }
         else {
             currentToken += c;             // add character to current token
@@ -517,6 +518,7 @@ int main() {
                    
                     if(background){
                    std::cout << "[1] " << pid << std::endl;
+                    std::cout.flush();
                     rl_on_new_line();        // tell readline we're on a new line
                     rl_redisplay();          // redisplay the prompt cleanly
                 }
