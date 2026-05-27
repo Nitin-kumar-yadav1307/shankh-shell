@@ -322,7 +322,11 @@ int main() {
    int stderrIndexToken = -1;
    std::string stderrRedirectFile = "";
    //std:: getline(std::cin, input);
-   char* raw = readline("$ ");
+   // print prompt manually
+    std::cout << "$ ";
+    std::cout.flush();
+    rl_already_prompted = 1;
+    char* raw = readline("");  // empty string since we already printed prompt
     if (!raw) break;  // EOF
     std::string input(raw);
     free(raw);    
