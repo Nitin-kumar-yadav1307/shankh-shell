@@ -500,6 +500,8 @@ int main() {
             // wait for both children
             waitpid(pid1, nullptr, 0);
             waitpid(pid2, nullptr, 0);
+
+            continue;
         }
         else{
             
