@@ -78,7 +78,7 @@ if(state == 0){
         std::string line(rl_line_buffer);
          
      if(line.find(' ') == std::string::npos){
-           for (auto& b : {"echo","exit","pwd","cd","type","complete","jobs"}) {
+           for (auto& b : {"echo","exit","pwd","cd","type","complete","jobs","history"}) {
             if (std::string(b).rfind(text, 0) == 0)  // starts with what user typed?
                 matches.push_back(b);
         }
@@ -349,7 +349,7 @@ std::string findInPath(const std::string& command) {
 bool isBuiltin(const std::string& cmd){
     return cmd=="echo" || cmd=="pwd" || 
            cmd=="type" || cmd=="cd"  ||
-           cmd=="exit" || cmd=="jobs";
+           cmd=="exit" || cmd=="jobs"|| cmd=="history";
 }
 
 
@@ -378,6 +378,15 @@ void runBuiltin(std::vector<std::string>& toks){
                 std::cout << target << ": not found\n";
         }
     }
+    else if(toks[0] == "history"){
+    HIST_ENTRY** histList = history_list();
+    if(histList){
+        for(int i = 0; histList[i] != nullptr; i++){
+            std::cout << "    " << (i+1) << "  " 
+                      << histList[i]->line << "\n";
+        }
+    }
+}
 }
 
 
@@ -417,6 +426,7 @@ int main() {
     char* raw = readline("$ ");  // empty string since we already printed prompt
     if (!raw) break;  // EOF
     std::string input(raw);
+    add_history(raw); 
     free(raw);    
    bool appendMode = false;
    bool stderrAppendMode = false;
@@ -634,7 +644,7 @@ int main() {
             if (tokens.size() < 2) continue;
             std::string target = tokens[1];
 
-            if (target == "echo" || target == "exit" || target == "type" || target == "pwd" || target == "cd" || target == "complete"  || target == "jobs") {
+            if (target == "echo" || target == "exit" || target == "type" || target == "pwd" || target == "cd" || target == "complete"  || target == "jobs" || target == "history") {
                 std::cout << target << " is a shell builtin" << std::endl;
             } else {
                 std::string path = findInPath(target);
@@ -708,6 +718,15 @@ int main() {
         jobs.end()
     );
 }
+
+        else if(command == "history"){
+            HIST_ENTRY** histList = history_list();
+            if(histList){
+                for(int i = 0; histList[i] != nullptr; i++){
+                    std::cout << "    " << (i+1) << "  " << histList[i]->line << "\n";
+                }
+            }
+        }
 
 
         // --- External programs ---
