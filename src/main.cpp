@@ -345,6 +345,41 @@ std::string findInPath(const std::string& command) {
 }
 
 
+bool isBuiltin(const std::string& cmd){
+    return cmd=="echo" || cmd=="pwd" || 
+           cmd=="type" || cmd=="cd"  ||
+           cmd=="exit" || cmd=="jobs";
+}
+
+
+void runBuiltin(std::vector<std::string>& toks){
+    if(toks[0] == "echo"){
+        for(size_t i = 1; i < toks.size(); i++){
+            if(i > 1) std::cout << " ";
+            std::cout << toks[i];
+        }
+        std::cout << "\n";
+    }
+    else if(toks[0] == "pwd"){
+        char buf[PATH_MAX];
+        getcwd(buf, sizeof(buf));
+        std::cout << buf << "\n";
+    }
+    else if(toks[0] == "type"){
+        std::string target = toks[1];
+        if(isBuiltin(target))
+            std::cout << target << " is a shell builtin\n";
+        else {
+            std::string path = findInPath(target);
+            if(!path.empty())
+                std::cout << target << " is " << path << "\n";
+            else
+                std::cout << target << ": not found\n";
+        }
+    }
+}
+
+
 
 int main() {
   // Flush after every std::cout / std:cerr
@@ -476,22 +511,32 @@ int main() {
 
 
 
-            pid_t pid1 = fork();
-            if(pid1 == 0){
-            // I am left child
-            dup2(fd[1], 1);  // my stdout → pipe
-            close(fd[0]);    // don't need read end
-            close(fd[1]);    // already duplicated
-          execv(leftPath.c_str(), leftArgv.data());
-            }
+                pid_t pid1 = fork();
+                if(pid1 == 0){
+                dup2(fd[1], 1);
+                close(fd[0]);
+                close(fd[1]);
+                if(isBuiltin(leftTokens[0])){   // ← add this
+                runBuiltin(leftTokens);
+                    exit(0);
+            } else {
+                    execv(leftPath.c_str(), leftArgv.data());
+                    exit(1);
+                }
+        }   
 
             pid_t pid2 = fork();
             if(pid2 == 0){
-            // I am right child
-            dup2(fd[0], 0);  // my stdin ← pipe
-            close(fd[1]);    // don't need write end
-            close(fd[0]);    // already duplicated
-           execv(rightPath.c_str(), rightArgv.data());
+                dup2(fd[0], 0);
+                close(fd[0]);
+                close(fd[1]);
+                if(isBuiltin(rightTokens[0])){  // ← add this
+                    runBuiltin(rightTokens);
+                    exit(0);
+                } else {
+                    execv(rightPath.c_str(), rightArgv.data());
+                    exit(1);
+                }
             }
             // parent must close both ends!
             close(fd[0]);
