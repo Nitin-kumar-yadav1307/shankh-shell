@@ -406,7 +406,7 @@ int main() {
 
         for(int i = 0 ; tokens.size()>i ; i++){
 
-             if(token[i] == "|"){
+             if(tokens[i] == "|"){
                 pipeIndex = i ;
                 break;
             }
@@ -444,17 +444,33 @@ int main() {
            
         }
 
-        if(pipeIndex ! = -1 ){
+        if(pipeIndex != -1 ){
             // left command: everything before |
-            std::vector<Std::string> leftTokens(tokens.begin(), tokens.begin() + pipeIndex);
+            std::vector<std::string> leftTokens(tokens.begin(), tokens.begin() + pipeIndex);
 
             // right command: everything after |
              std::vector<std::string> rightTokens(tokens.begin() + pipeIndex + 1, tokens.end());
-
+            
             int fd[2];
             pipe(fd);
             // fd[1] = write end (left command writes here)
             // fd[0] = read end  (right command reads here)
+
+           std::string leftPath = findInPath(leftTokens[0]);
+            std::vector<char*> leftArgv;
+            for(auto& t : leftTokens)
+             leftArgv.push_back(const_cast<char*>(t.c_str()));
+            leftArgv.push_back(nullptr);
+
+        // same for right:
+        std::string rightPath = findInPath(rightTokens[0]);
+        std::vector<char*> rightArgv;
+        for(auto& t : rightTokens)
+        rightArgv.push_back(const_cast<char*>(t.c_str()));
+        rightArgv.push_back(nullptr);
+
+
+
 
             pid_t pid1 = fork();
             if(pid1 == 0){
@@ -493,7 +509,7 @@ int main() {
             tokens.erase(tokens.begin() + stderrIndexToken);  // erase operator
         }
 
-        if()
+        
     
           
          int savedStdout = -1;
@@ -711,7 +727,7 @@ int main() {
                     std::cout << "[" << newJob.number << "] " << pid << "\n";
                     std::cout.flush();
 
-                    nextJobNumber++;  // increment for next job
+                   // nextJobNumber++;  // increment for next job
                     }
                    else{
                         int status;
