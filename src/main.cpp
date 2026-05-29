@@ -12,6 +12,7 @@
 #include <readline/history.h>
 #include <dirent.h>   // for DIR, opendir, readdir, closedir
 #include <map> 
+#include <array>  // ← needed for std::array
 
 
 struct Job {
@@ -483,78 +484,77 @@ int main() {
         int savedStderr = -1;
           int fd = -1;
 
-        if(pipeIndex != -1 ){
-           // split by |
-                std::vector<std::vector<std::string>> commands;  // each command's tokens
-                std::vector<std::string> current;
-                for(auto& token : tokens){
-                    if(token == "|"){
-                        commands.push_back(current);
-                        current.clear();
+        if(pipeIndex != -1){
+            // Step 1: split all tokens by |
+            std::vector<std::vector<std::string>> commands;
+            std::vector<std::string> current;
+            for(auto& token : tokens){
+                if(token == "|"){
+                    commands.push_back(current);
+                    current.clear();
+                } else {
+                    current.push_back(token);
+                }
+            }
+            commands.push_back(current);  // last command
+
+            int numCmds = commands.size();
+            int numPipes = numCmds - 1;
+
+            // Step 2: create all pipes
+            std::vector<std::array<int,2>> pipes(numPipes);
+            for(int i = 0; i < numPipes; i++){
+                pipe(pipes[i].data());
+            }
+
+            // Step 3: fork each command
+            std::vector<pid_t> pids;
+            for(int i = 0; i < numCmds; i++){
+                pid_t pid = fork();
+
+                if(pid == 0){
+                    // if not first → read from previous pipe
+                    if(i > 0){
+                        dup2(pipes[i-1][0], 0);
+                    }
+                    // if not last → write to next pipe
+                    if(i < numCmds - 1){
+                        dup2(pipes[i][1], 1);
+                    }
+                    // close ALL pipe ends
+                    for(int j = 0; j < numPipes; j++){
+                        close(pipes[j][0]);
+                        close(pipes[j][1]);
+                    }
+                    // run command
+                    if(isBuiltin(commands[i][0])){
+                        runBuiltin(commands[i]);
+                        exit(0);
                     } else {
-                        current.push_back(token);
+                        std::string path = findInPath(commands[i][0]);
+                        std::vector<char*> argv;
+                        for(auto& t : commands[i])
+                            argv.push_back(const_cast<char*>(t.c_str()));
+                        argv.push_back(nullptr);
+                        execv(path.c_str(), argv.data());
+                        exit(1);
                     }
                 }
-                commands.push_back(current);
-                // commands[0] = ["cat", "file"]
-                // commands[1] = ["head", "-n", "3"]
-                // commands[2] = ["wc"]
+                pids.push_back(pid);
+            }
 
-                int numCmds = commands.size();
-                int numPipes = numCmds - 1;
+            // Step 4: parent closes ALL pipes
+            for(int i = 0; i < numPipes; i++){
+                close(pipes[i][0]);
+                close(pipes[i][1]);
+            }
 
-                // create all pipes
-                std::vector<std::array<int,2>> pipes(numPipes);
-                for(int i = 0; i < numPipes; i++){
-                    pipe(pipes[i].data());
-                }
+            // Step 5: wait for ALL children
+            for(pid_t p : pids){
+                waitpid(p, nullptr, 0);
+            }
 
-                // fork each command
-                std::vector<pid_t> pids;
-                for(int i = 0; i < numCmds; i++){
-                    pid_t pid = fork();
-                    if(pid == 0){
-                        // if not first command → read from previous pipe
-                        if(i > 0){
-                            dup2(pipes[i-1][0], 0);  // stdin ← prev pipe read end
-                        }
-                        // if not last command → write to next pipe
-                        if(i < numCmds - 1){
-                            dup2(pipes[i][1], 1);    // stdout → next pipe write end
-                        }
-                        // close ALL pipe ends
-                        for(int j = 0; j < numPipes; j++){
-                            close(pipes[j][0]);
-                            close(pipes[j][1]);
-                        }
-                        // run command
-                        if(isBuiltin(commands[i][0])){
-                            runBuiltin(commands[i]);
-                            exit(0);
-                        } else {
-                            string path = findInPath(commands[i][0]);
-                            vector<char*> argv;
-                            for(auto& t : commands[i])
-                                argv.push_back(const_cast<char*>(t.c_str()));
-                            argv.push_back(nullptr);
-                            execv(path.c_str(), argv.data());
-                            exit(1);
-                        }
-                    }
-                    pids.push_back(pid);
-                }
-
-                // parent closes ALL pipes
-                for(int i = 0; i < numPipes; i++){
-                    close(pipes[i][0]);
-                    close(pipes[i][1]);
-                }
-
-                // wait for ALL children
-                for(pid_t p : pids){
-                    waitpid(p, nullptr, 0);
-                }
-            continue;
+            continue;  // skip rest of loop
         }
         else{
             
