@@ -719,14 +719,28 @@ int main() {
     );
 }
 
-        else if(command == "history"){
-            HIST_ENTRY** histList = history_list();
-            if(histList){
-                for(int i = 0; histList[i] != nullptr; i++){
-                    std::cout << "    " << (i+1) << "  " << histList[i]->line << "\n";
-                }
-            }
+       else if(command == "history"){
+    HIST_ENTRY** histList = history_list();
+    if(histList){
+        // count total
+        int total = 0;
+        while(histList[total] != nullptr) total++;
+
+        // find start point
+        int start = 0;
+        if(tokens.size() >= 2){
+            int n = std::stoi(tokens[1]);
+            start = total - n;
+            if(start < 0) start = 0;
         }
+
+        // print
+        for(int i = start; i < total; i++){
+            std::cout << "    " << (i+1) << "  "
+                      << histList[i]->line << "\n";
+        }
+    }
+}
 
 
         // --- External programs ---
