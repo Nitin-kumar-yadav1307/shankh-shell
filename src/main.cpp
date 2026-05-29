@@ -484,68 +484,76 @@ int main() {
           int fd = -1;
 
         if(pipeIndex != -1 ){
-            // left command: everything before |
-            std::vector<std::string> leftTokens(tokens.begin(), tokens.begin() + pipeIndex);
-
-            // right command: everything after |
-             std::vector<std::string> rightTokens(tokens.begin() + pipeIndex + 1, tokens.end());
-            
-            int fd[2];
-            pipe(fd);
-            // fd[1] = write end (left command writes here)
-            // fd[0] = read end  (right command reads here)
-
-           std::string leftPath = findInPath(leftTokens[0]);
-            std::vector<char*> leftArgv;
-            for(auto& t : leftTokens)
-             leftArgv.push_back(const_cast<char*>(t.c_str()));
-            leftArgv.push_back(nullptr);
-
-        // same for right:
-        std::string rightPath = findInPath(rightTokens[0]);
-        std::vector<char*> rightArgv;
-        for(auto& t : rightTokens)
-        rightArgv.push_back(const_cast<char*>(t.c_str()));
-        rightArgv.push_back(nullptr);
-
-
-
-
-                pid_t pid1 = fork();
-                if(pid1 == 0){
-                dup2(fd[1], 1);
-                close(fd[0]);
-                close(fd[1]);
-                if(isBuiltin(leftTokens[0])){   // ← add this
-                runBuiltin(leftTokens);
-                    exit(0);
-            } else {
-                    execv(leftPath.c_str(), leftArgv.data());
-                    exit(1);
+           // split by |
+                std::vector<std::vector<std::string>> commands;  // each command's tokens
+                std::vector<std::string> current;
+                for(auto& token : tokens){
+                    if(token == "|"){
+                        commands.push_back(current);
+                        current.clear();
+                    } else {
+                        current.push_back(token);
+                    }
                 }
-        }   
+                commands.push_back(current);
+                // commands[0] = ["cat", "file"]
+                // commands[1] = ["head", "-n", "3"]
+                // commands[2] = ["wc"]
 
-            pid_t pid2 = fork();
-            if(pid2 == 0){
-                dup2(fd[0], 0);
-                close(fd[0]);
-                close(fd[1]);
-                if(isBuiltin(rightTokens[0])){  // ← add this
-                    runBuiltin(rightTokens);
-                    exit(0);
-                } else {
-                    execv(rightPath.c_str(), rightArgv.data());
-                    exit(1);
+                int numCmds = commands.size();
+                int numPipes = numCmds - 1;
+
+                // create all pipes
+                std::vector<std::array<int,2>> pipes(numPipes);
+                for(int i = 0; i < numPipes; i++){
+                    pipe(pipes[i].data());
                 }
-            }
-            // parent must close both ends!
-            close(fd[0]);
-            close(fd[1]);
 
-            // wait for both children
-            waitpid(pid1, nullptr, 0);
-            waitpid(pid2, nullptr, 0);
+                // fork each command
+                std::vector<pid_t> pids;
+                for(int i = 0; i < numCmds; i++){
+                    pid_t pid = fork();
+                    if(pid == 0){
+                        // if not first command → read from previous pipe
+                        if(i > 0){
+                            dup2(pipes[i-1][0], 0);  // stdin ← prev pipe read end
+                        }
+                        // if not last command → write to next pipe
+                        if(i < numCmds - 1){
+                            dup2(pipes[i][1], 1);    // stdout → next pipe write end
+                        }
+                        // close ALL pipe ends
+                        for(int j = 0; j < numPipes; j++){
+                            close(pipes[j][0]);
+                            close(pipes[j][1]);
+                        }
+                        // run command
+                        if(isBuiltin(commands[i][0])){
+                            runBuiltin(commands[i]);
+                            exit(0);
+                        } else {
+                            string path = findInPath(commands[i][0]);
+                            vector<char*> argv;
+                            for(auto& t : commands[i])
+                                argv.push_back(const_cast<char*>(t.c_str()));
+                            argv.push_back(nullptr);
+                            execv(path.c_str(), argv.data());
+                            exit(1);
+                        }
+                    }
+                    pids.push_back(pid);
+                }
 
+                // parent closes ALL pipes
+                for(int i = 0; i < numPipes; i++){
+                    close(pipes[i][0]);
+                    close(pipes[i][1]);
+                }
+
+                // wait for ALL children
+                for(pid_t p : pids){
+                    waitpid(p, nullptr, 0);
+                }
             continue;
         }
         else{
