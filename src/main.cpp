@@ -373,6 +373,7 @@ int main() {
    std::string redirectFile = "";
    //std::string input;
    int indextoken = -1 ;
+   int pipeIndex = -1;
    int stderrIndexToken = -1;
    std::string stderrRedirectFile = "";
    //std:: getline(std::cin, input);
@@ -404,6 +405,12 @@ int main() {
         std::string command = tokens[0];
 
         for(int i = 0 ; tokens.size()>i ; i++){
+
+             if(token[i] == "|"){
+                pipeIndex = i ;
+                break;
+            }
+           
            
             if(tokens[i] == "2>>"){
                 stderrAppendMode = true;
@@ -433,9 +440,49 @@ int main() {
                redirectFile = tokens[i+1];
                break;
             }
+
            
         }
 
+        if(pipeIndex ! = -1 ){
+            // left command: everything before |
+            std::vector<Std::string> leftTokens(tokens.begin(), tokens.begin() + pipeIndex);
+
+            // right command: everything after |
+             std::vector<std::string> rightTokens(tokens.begin() + pipeIndex + 1, tokens.end());
+
+            int fd[2];
+            pipe(fd);
+            // fd[1] = write end (left command writes here)
+            // fd[0] = read end  (right command reads here)
+
+            pid_t pid1 = fork();
+            if(pid1 == 0){
+            // I am left child
+            dup2(fd[1], 1);  // my stdout → pipe
+            close(fd[0]);    // don't need read end
+            close(fd[1]);    // already duplicated
+            execv(leftPath, leftArgv);
+            }
+
+            pid_t pid2 = fork();
+            if(pid2 == 0){
+            // I am right child
+            dup2(fd[0], 0);  // my stdin ← pipe
+            close(fd[1]);    // don't need write end
+            close(fd[0]);    // already duplicated
+            execv(rightPath, rightArgv);
+            }
+            // parent must close both ends!
+            close(fd[0]);
+            close(fd[1]);
+
+            // wait for both children
+            waitpid(pid1, nullptr, 0);
+            waitpid(pid2, nullptr, 0);
+        }
+        else{
+            
         if(indextoken != -1){
              tokens.erase(tokens.begin() + indextoken+1);  // erase filename
             tokens.erase(tokens.begin() + indextoken);  // erase operator
@@ -445,6 +492,8 @@ int main() {
              tokens.erase(tokens.begin() + stderrIndexToken+1);  // erase filename
             tokens.erase(tokens.begin() + stderrIndexToken);  // erase operator
         }
+
+        if()
     
           
          int savedStdout = -1;
@@ -471,6 +520,9 @@ int main() {
 }
 
   
+
+        }
+
         
  // --- builtins programs
  
