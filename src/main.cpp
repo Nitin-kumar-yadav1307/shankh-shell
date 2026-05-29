@@ -444,6 +444,10 @@ int main() {
            
         }
 
+        int savedStdout = -1;
+        int savedStderr = -1;
+          int fd = -1;
+
         if(pipeIndex != -1 ){
             // left command: everything before |
             std::vector<std::string> leftTokens(tokens.begin(), tokens.begin() + pipeIndex);
@@ -478,7 +482,7 @@ int main() {
             dup2(fd[1], 1);  // my stdout → pipe
             close(fd[0]);    // don't need read end
             close(fd[1]);    // already duplicated
-            execv(leftPath, leftArgv);
+          execv(leftPath.c_str(), leftArgv.data());
             }
 
             pid_t pid2 = fork();
@@ -487,7 +491,7 @@ int main() {
             dup2(fd[0], 0);  // my stdin ← pipe
             close(fd[1]);    // don't need write end
             close(fd[0]);    // already duplicated
-            execv(rightPath, rightArgv);
+           execv(rightPath.c_str(), rightArgv.data());
             }
             // parent must close both ends!
             close(fd[0]);
@@ -509,11 +513,7 @@ int main() {
             tokens.erase(tokens.begin() + stderrIndexToken);  // erase operator
         }
 
-        
-    
-          
-         int savedStdout = -1;
-          int fd = -1;
+         
   if(!redirectFile.empty()){
     int flags = O_WRONLY | O_CREAT | (appendMode ? O_APPEND : O_TRUNC);
    fd = open(redirectFile.c_str(), flags, 0644);
@@ -524,7 +524,7 @@ int main() {
         }
 }
        
-    int savedStderr = -1;
+    
     if (!stderrRedirectFile.empty()) {
         int stderrFlags = O_WRONLY | O_CREAT | (stderrAppendMode ? O_APPEND : O_TRUNC);
         int stderrFd = open(stderrRedirectFile.c_str(), stderrFlags, 0644);
