@@ -720,7 +720,14 @@ int main() {
 }
 
        else if(command == "history"){
-    HIST_ENTRY** histList = history_list();
+
+         // handle -r flag
+         if(tokens.size() >= 3 && tokens[1] == "-r"){
+        std::string path = tokens[2];
+        read_history(path.c_str());  // ← reads file into history
+    }
+    else{
+        HIST_ENTRY** histList = history_list();
     if(histList){
         // count total
         int total = 0;
@@ -740,6 +747,9 @@ int main() {
                       << histList[i]->line << "\n";
         }
     }
+
+    }
+    
 }
 
 
