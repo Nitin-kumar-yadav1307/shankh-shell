@@ -726,6 +726,11 @@ int main() {
         std::string path = tokens[2];
         read_history(path.c_str());  // ← reads file into history
     }
+     // handle -w flag (write to file)
+    else if(tokens.size() >= 3 && tokens[1] == "-w"){
+        std::string path = tokens[2];
+        write_history(path.c_str());  // ← write in file by taking history from memory!
+    }
     else{
         HIST_ENTRY** histList = history_list();
     if(histList){
