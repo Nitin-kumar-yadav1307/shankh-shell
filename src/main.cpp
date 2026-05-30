@@ -25,6 +25,8 @@ struct Job {
 std::vector<Job> jobs;  // global list of jobs
 int nextJobNumber = 1;  // global counter
 
+int lastWrittenIndex = 0;
+
 //helper-> split inputs
 std::map<std::string, std::string> completionSpecs;
 
@@ -731,6 +733,29 @@ int main() {
         std::string path = tokens[2];
         write_history(path.c_str());  // ← write in file by taking history from memory!
     }
+    else if(tokens.size() >= 3 && tokens[1] == "-a"){
+    std::string path = tokens[2];
+    
+    // open file in append mode
+    FILE* f = fopen(path.c_str(), "a");
+    if(f){
+        HIST_ENTRY** histList = history_list();
+        if(histList){
+            // count total
+            int total = 0;
+            while(histList[total] != nullptr) total++;
+            
+            // write only new commands
+            for(int i = lastWrittenIndex; i < total; i++){
+                fprintf(f, "%s\n", histList[i]->line);
+            }
+            
+            // update last written position
+            lastWrittenIndex = total;
+        }
+        fclose(f);
+    }
+}
     else{
         HIST_ENTRY** histList = history_list();
     if(histList){
