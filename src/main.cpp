@@ -432,7 +432,11 @@ int main() {
    //std:: getline(std::cin, input);
    reapJobs();  
     char* raw = readline("$ ");  // empty string since we already printed prompt
-    if (!raw) break;  // EOF
+    if (!raw){ // EOF
+        char* histFile = getenv("HISTFILE");
+        if(histFile) write_history(histFile);
+      break;
+    }   
     std::string input(raw);
     add_history(raw); 
     free(raw);    
@@ -616,6 +620,10 @@ int main() {
  // --- builtins programs
  
    if(command == "exit"){
+    char* histFile = getenv("HISTFILE");
+    if(histFile){
+        write_history(histFile);
+    }
     break;
    }
    else if(command == "echo"){
