@@ -415,6 +415,12 @@ int main() {
     }
     errno = saved;
 });
+
+  char* histFile = getenv("HISTFILE");
+    if(histFile){
+        read_history(histFile);  // load from file
+    }
+
   while(true){
    //std::cout << "$ ";
    std::string redirectFile = "";
