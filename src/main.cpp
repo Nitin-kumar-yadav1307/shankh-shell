@@ -29,6 +29,7 @@ int lastWrittenIndex = 0;
 
 //helper-> split inputs
 std::map<std::string, std::string> completionSpecs;
+std::map<std::string, std::string> shellVars;
 
 void reapJobs(){
     // first mark exited jobs
@@ -796,14 +797,29 @@ int main() {
     }
     
 }
-    else if(command == "declare"){
-       if(tokens.size() >= 3 && tokens[1] == "-p"){
-        std::string varName = tokens[2];
-        // for now always print not found
-        // (no storage implemented yet)
-        std::cout << "declare: " << varName << ": not found" << std::endl;
+   else if(command == "declare"){
+    if(tokens.size() >= 2 && tokens[1] == "-p"){
+        // print variable
+        if(tokens.size() >= 3){
+            std::string varName = tokens[2];
+            if(shellVars.count(varName) > 0){
+                std::cout << "declare -- " << varName
+                          << "=\"" << shellVars[varName] 
+                          << "\"\n";
+            } else {
+                std::cout << "declare: " << varName 
+                          << ": not found\n";
+            }
+        }
     }
-    }   
+    else if(tokens.size() >= 2 && tokens[1].find('=') != std::string::npos){
+        // store variable
+        size_t eqPos = tokens[1].find('=');
+        std::string name  = tokens[1].substr(0, eqPos);
+        std::string value = tokens[1].substr(eqPos + 1);
+        shellVars[name] = value;
+    }
+}
 
 
         // --- External programs ---
