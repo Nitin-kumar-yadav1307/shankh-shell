@@ -408,32 +408,57 @@ void runBuiltin(std::vector<std::string>& toks){
 }
 
 std::string expandVariables(const std::string& token){
-    std::string result = "";
+    std::string result;
     size_t i = 0;
-    
+
     while(i < token.size()){
-        if(token[i] == '$'){
-            // collect variable name
-            i++;  // skip $
-            std::string name = "";
-            while(i < token.size() && 
+
+        // ${VAR}
+        if(token[i] == '$' &&
+           i + 1 < token.size() &&
+           token[i + 1] == '{'){
+
+            i += 2;   // skip "${"
+
+            std::string name;
+
+            while(i < token.size() && token[i] != '}'){
+                name += token[i];
+                i++;
+            }
+
+            // skip '}'
+            if(i < token.size() && token[i] == '}')
+                i++;
+
+            if(shellVars.count(name))
+                result += shellVars[name];
+        }
+
+        // $VAR
+        else if(token[i] == '$'){
+            i++;   // skip $
+
+            std::string name;
+
+            while(i < token.size() &&
                   (isalnum(token[i]) || token[i] == '_')){
                 name += token[i];
                 i++;
             }
-            // look up and replace
-            if(shellVars.count(name) > 0)
+
+            if(shellVars.count(name))
                 result += shellVars[name];
-            // if not found → add nothing
-        } else {
+        }
+
+        else{
             result += token[i];
             i++;
         }
     }
+
     return result;
 }
-
-
 
 int main() {
   // Flush after every std::cout / std:cerr
