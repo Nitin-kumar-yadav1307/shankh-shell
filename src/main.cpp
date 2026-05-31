@@ -797,7 +797,12 @@ int main() {
     
 }
     else if(command == "declare"){
-        // empty for now
+       if(tokens.size() >= 3 && tokens[1] == "-p"){
+        std::string varName = tokens[2];
+        // for now always print not found
+        // (no storage implemented yet)
+        std::cout << "declare: " << varName << ": not found" << std::endl;
+    }
     }   
 
 
