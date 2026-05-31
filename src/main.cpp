@@ -80,7 +80,7 @@ if(state == 0){
         std::string line(rl_line_buffer);
          
      if(line.find(' ') == std::string::npos){
-           for (auto& b : {"echo","exit","pwd","cd","type","complete","jobs","history"}) {
+           for (auto& b : {"echo","exit","pwd","cd","type","complete","jobs","history","declare"}) {
             if (std::string(b).rfind(text, 0) == 0)  // starts with what user typed?
                 matches.push_back(b);
         }
@@ -351,7 +351,8 @@ std::string findInPath(const std::string& command) {
 bool isBuiltin(const std::string& cmd){
     return cmd=="echo" || cmd=="pwd" || 
            cmd=="type" || cmd=="cd"  ||
-           cmd=="exit" || cmd=="jobs"|| cmd=="history";
+           cmd=="exit" || cmd=="jobs"|| 
+           cmd=="history" || cmd=="declare";
 }
 
 
@@ -660,7 +661,7 @@ int main() {
             if (tokens.size() < 2) continue;
             std::string target = tokens[1];
 
-            if (target == "echo" || target == "exit" || target == "type" || target == "pwd" || target == "cd" || target == "complete"  || target == "jobs" || target == "history") {
+            if (target == "echo" || target == "exit" || target == "type" || target == "pwd" || target == "cd" || target == "complete"  || target == "jobs" || target == "history" || target == "declare") {
                 std::cout << target << " is a shell builtin" << std::endl;
             } else {
                 std::string path = findInPath(target);
@@ -795,6 +796,9 @@ int main() {
     }
     
 }
+    else if(command == "declare"){
+        // empty for now
+    }   
 
 
         // --- External programs ---
