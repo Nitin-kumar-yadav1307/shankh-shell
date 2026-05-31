@@ -407,6 +407,32 @@ void runBuiltin(std::vector<std::string>& toks){
 }
 }
 
+std::string expandVariables(const std::string& token){
+    std::string result = "";
+    size_t i = 0;
+    
+    while(i < token.size()){
+        if(token[i] == '$'){
+            // collect variable name
+            i++;  // skip $
+            std::string name = "";
+            while(i < token.size() && 
+                  (isalnum(token[i]) || token[i] == '_')){
+                name += token[i];
+                i++;
+            }
+            // look up and replace
+            if(shellVars.count(name) > 0)
+                result += shellVars[name];
+            // if not found → add nothing
+        } else {
+            result += token[i];
+            i++;
+        }
+    }
+    return result;
+}
+
 
 
 int main() {
@@ -465,6 +491,15 @@ int main() {
 
         std::vector<std::string> tokens = splitInput(input);
        
+
+        // expand variables
+        for(auto& token : tokens){
+            if(token != "|" && token != ">" && token != ">>" &&
+            token != "2>" && token != "2>>" && token != "&" &&
+            token != "1>" && token != "1>>"){
+                token = expandVariables(token);
+            }
+        }
 
         // check for background
         bool background = false;
