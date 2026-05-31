@@ -356,6 +356,20 @@ bool isBuiltin(const std::string& cmd){
            cmd=="history" || cmd=="declare";
 }
 
+bool isValidIdentifier(const std::string& name){
+    if(name.empty()) return false;
+    
+    // first char must be letter or underscore
+    if(!isalpha(name[0]) && name[0] != '_') return false;
+    
+    // rest must be letter, digit, or underscore
+    for(size_t i = 1; i < name.size(); i++){
+        if(!isalnum(name[i]) && name[i] != '_') return false;
+    }
+    
+    return true;
+}
+
 
 void runBuiltin(std::vector<std::string>& toks){
     if(toks[0] == "echo"){
@@ -817,7 +831,13 @@ int main() {
         size_t eqPos = tokens[1].find('=');
         std::string name  = tokens[1].substr(0, eqPos);
         std::string value = tokens[1].substr(eqPos + 1);
-        shellVars[name] = value;
+        // validate name first
+    if(!isValidIdentifier(name)){
+        std::cout << "declare: `" << tokens[1] 
+                  << "': not a valid identifier\n";
+    } else {
+        shellVars[name] = value;  // only store if valid
+    }
     }
 }
 
