@@ -13,340 +13,35 @@
 #include <dirent.h>   // for DIR, opendir, readdir, closedir
 #include <map> 
 #include <array>  // ← needed for std::array
+#include "parser/parser.h"
+#include "utils/path_utils.h"
+#include "variables/variable_manager.h"
+#include "jobs/job_manager.h"
+#include "completion/completion.h"
+#include <algorithm>
 
 
-struct Job {
-    int number;
-    pid_t pid;
-    std::string command;
-    std::string status;
-};
 
-std::vector<Job> jobs;  // global list of jobs
+
+
+//std::vector<Job> jobs;  // global list of jobs
 int nextJobNumber = 1;  // global counter
 
 int lastWrittenIndex = 0;
 
 //helper-> split inputs
-std::map<std::string, std::string> completionSpecs;
-std::map<std::string, std::string> shellVars;
-
-void reapJobs(){
-    // first mark exited jobs
-    for(auto& job : jobs){
-        int status;
-        pid_t result = waitpid(job.pid, &status, WNOHANG);
-        if(result == job.pid && WIFEXITED(status)){
-            job.status = "Done";
-        }
-    }
-
-    int total = jobs.size();
-    for(int i = 0; i < total; i++){
-        if(jobs[i].status == "Done"){
-            char marker;
-            if(i == total - 1)      marker = '+';
-            else if(i == total - 2) marker = '-';
-            else                    marker = ' ';
-
-            std::string cmd = jobs[i].command;
-            if(cmd.size() >= 2 && cmd.substr(cmd.size()-2) == " &")
-                cmd = cmd.substr(0, cmd.size()-2);
-
-            std::string status = "Done";
-            while(status.length() < 24) status += " ";  // ← 24
-
-            std::cout << "[" << jobs[i].number << "]"
-                      << marker << "  "
-                      << status
-                      << cmd << "\n";
-        }
-    }
-
-    jobs.erase(
-        std::remove_if(jobs.begin(), jobs.end(),
-            [](const Job& j){ return j.status == "Done"; }),
-        jobs.end()
-    );
-}
-
-char* myCompleter(const char* text , int state){
-    static std::vector<std::string> matches ;
-    static int index;
-     
-
-if(state == 0){
-    matches.clear();
-        index = 0 ;
-        std::string line(rl_line_buffer);
-         
-     if(line.find(' ') == std::string::npos){
-           for (auto& b : {"echo","exit","pwd","cd","type","complete","jobs","history","declare"}) {
-            if (std::string(b).rfind(text, 0) == 0)  // starts with what user typed?
-                matches.push_back(b);
-        }
-
-        // Get PATH directories
-    char* pathEnv = std::getenv("PATH");
-    std::string pathStr(pathEnv ? pathEnv : "");
-
-    size_t start = 0;
-    size_t end = pathStr.find(':');
-
-    while(start < pathStr.length()){
-    std::string dir;
-        if(end == std::string::npos)
-        dir = pathStr.substr(start);
-        else
-        dir = pathStr.substr(start, end - start);
-
-        // Open the directory
-        DIR* d = opendir(dir.c_str());
-        if(d){  // directory exists
-        struct dirent* entry;
-        while((entry = readdir(d)) != nullptr){
-            std::string filename(entry->d_name);
-            // check if filename starts with text
-            if(filename.rfind(text, 0) == 0){
-                // check if it's executable
-                std::string fullPath = dir + "/" + filename;
-                if(access(fullPath.c_str(), X_OK) == 0)
-                    matches.push_back(filename);
-            }
-        }
-        closedir(d);
-     }
-
-         if(end == std::string::npos) break;
-        start = end + 1;
-        end = pathStr.find(':', start);
-     }
-
-         if(matches.empty()){
-        std::cout << "\x07";
-        std::cout.flush();
-        }
-
-        } else {
-
-
-    // extract command name (first word)
-  
-    std::string cmdName = line.substr(0, line.find(' '));
-
-    // check if completer registered
-    if(completionSpecs.count(cmdName) > 0){
-        std::string scriptPath = completionSpecs[cmdName];
-        // split line into words
-    std::vector<std::string> lineWords;
-    std::istringstream ss(line);
-    std::string w;
-    while(ss >> w) lineWords.push_back(w);
-
-    // get previous word
-    std::string prevWord = "";
-    if(lineWords.size() >= 2){
-    prevWord = lineWords[lineWords.size() - 2];
-    }
-
-        // run script and read output
-        int fd[2];
-        pipe(fd);
-        pid_t pid = fork();
-
-        if(pid == 0){
-            // set environment variables
-             setenv("COMP_LINE", line.c_str(), 1);
-            setenv("COMP_POINT", std::to_string(line.length()).c_str(), 1);
-            // child
-            close(fd[0]);
-            dup2(fd[1], 1);   // stdout → pipe
-            close(fd[1]);
-           execl(scriptPath.c_str(), 
-                scriptPath.c_str(),   // argv[0] = program name
-                cmdName.c_str(),      // argv[1] = command name
-                text,                  // argv[2] = partial text
-                prevWord.c_str(),                
-                nullptr);
-            exit(1);
-        } else {
-            // parent reads output
-            close(fd[1]);
-            char buffer[1024];
-            std::string output = "";
-            int bytes;
-            while((bytes = read(fd[0], buffer, sizeof(buffer)-1)) > 0){
-                buffer[bytes] = '\0';
-                output += buffer;
-            }
-            close(fd[0]);
-            wait(nullptr);
-
-            // each line is a completion candidate
-            std::istringstream stream(output);
-            std::string word;
-            while(std::getline(stream, word)){
-                if(!word.empty())
-                    matches.push_back(word);
-            }
-        }
-    }
-         if(matches.empty()){
-    //  filename completion code
-            // opendir(".") + readdir + rfind check
-            std::string textStr(text);// just conversion of char* from string
-            size_t lastSlash = textStr.rfind('/'); // rfind find tha lastone of that char in string
-            if(lastSlash != std::string::npos){ // npos->not found
-                std::string directory = textStr.substr(0,lastSlash+1);
-                std::string prefix  = textStr.substr(lastSlash+1);
-
-                 DIR* d = opendir(directory.c_str());
-            if(d){
-                struct dirent* entry;
-                while((entry = readdir(d)) != nullptr){
-                        std::string filename(entry->d_name);
-                        if(filename == "." || filename == "..") continue;
-                    if(filename.rfind(prefix, 0) == 0){
-                  std::string fullPath = directory + filename;
-                    struct stat st;
-                    stat(fullPath.c_str(), &st);
-                    if(S_ISDIR(st.st_mode)){//S_ISDIR is a macro that checks if something is a directory.
-                        matches.push_back(directory+filename + "/");
-                        rl_completion_append_character = '\0';
-                    } else {
-                                matches.push_back(directory+filename);
-                            rl_completion_append_character = ' ';
-                    } // ← full path!
-            }
-        }
-        closedir(d);
-    }
-
-            }
-            else {
-                DIR* d = opendir(".");
-                 if(d){
-                    struct dirent* entry;
-                    while((entry = readdir(d)) != nullptr){
-                        std::string filename(entry->d_name);
-                          if(filename == "." || filename == "..") continue;
-                        if(filename.rfind(text,0) == 0){
-                       std::string fullPath = "./" + filename;
-                       struct stat st;
-                        stat(fullPath.c_str(), &st);
-                        if(S_ISDIR(st.st_mode)){
-                                matches.push_back( filename + "/");
-                                rl_completion_append_character = '\0';
-                        } else {
-                            matches.push_back( filename);
-                            rl_completion_append_character = ' ';
-                        }
-
-                    }
-                } 
-                closedir(d);
-        }
-            }
-}
-            
-         
-        }
-       
-    }
-   
-        if (index < matches.size())
-         return strdup(matches[index++].c_str());
-        return nullptr;
-}
+//std::map<std::string, std::string> completionSpecs;
+//std::map<std::string, std::string> shellVars;
 
 
 
-
-std::vector<std::string> splitInput(const std::string& input) {
-    std::vector<std::string> tokens;
-    std::string currentToken = "";
-    bool singleQuoteMode = false;
-    bool doubleQuoteMode = false;
-
-
-    for (int i = 0; i < input.length(); i++) {
-        char c = input[i];
-           
-        if(c == '\\' && !doubleQuoteMode && !singleQuoteMode){
-            i++;
-            currentToken += input[i];
-        }
-        else if (c == '\'' && !doubleQuoteMode) {
-            singleQuoteMode = !singleQuoteMode;  // toggle quote mode, don't add ' to token
-        }
-        else if (c == '\"' && !singleQuoteMode) {
-            doubleQuoteMode = !doubleQuoteMode;  // toggle quote mode, don't add ' to token
-        }
-        else if(doubleQuoteMode && c == '\\'){
-            char next = input[i+1];
-            if(next == '\"' || next == '\\'){
-                i++;
-                currentToken += input[i];
-
-            }
-            else{
-                currentToken += '\\';
-            }
-        }
-       else if (c == ' ' && !singleQuoteMode && !doubleQuoteMode) {
-        if (!currentToken.empty()) {
-        tokens.push_back(currentToken);
-        currentToken = "";
-        }
-    }
-    else if (c == '&' && !singleQuoteMode && !doubleQuoteMode) {
-        if (!currentToken.empty()) {
-             tokens.push_back(currentToken);
-             currentToken = "";
-    }
-    tokens.push_back("&");
-}
-        else {
-            currentToken += c;             // add character to current token
-        }
-    }
-
-    if (!currentToken.empty()) {           // save last token
-        tokens.push_back(currentToken);
-    }
-
-    return tokens;
-}
 
 //helper-> find path
-std::string findInPath(const std::string& command) {
-    char* pathEnv = std::getenv("PATH");
-    std::string pathStr(pathEnv ? pathEnv : "");
 
-    size_t start = 0;
-    size_t end = pathStr.find(':');
 
-    while (start < pathStr.length()) {
-        std::string dir;
-        if (end == std::string::npos) {
-            dir = pathStr.substr(start);
-        } else {
-            dir = pathStr.substr(start, end - start);
-        }
 
-        std::string fullPath = dir + "/" + command;
-        struct stat st;
-        if (stat(fullPath.c_str(), &st) == 0 && access(fullPath.c_str(), X_OK) == 0) {
-            return fullPath;  // found!
-        }
 
-        if (end == std::string::npos) break;
-        start = end + 1;
-        end = pathStr.find(':', start);
-    }
 
-    return "";  // not found
-}
 
 
 bool isBuiltin(const std::string& cmd){
@@ -356,19 +51,7 @@ bool isBuiltin(const std::string& cmd){
            cmd=="history" || cmd=="declare";
 }
 
-bool isValidIdentifier(const std::string& name){
-    if(name.empty()) return false;
-    
-    // first char must be letter or underscore
-    if(!isalpha(name[0]) && name[0] != '_') return false;
-    
-    // rest must be letter, digit, or underscore
-    for(size_t i = 1; i < name.size(); i++){
-        if(!isalnum(name[i]) && name[i] != '_') return false;
-    }
-    
-    return true;
-}
+
 
 
 void runBuiltin(std::vector<std::string>& toks){
@@ -407,58 +90,7 @@ void runBuiltin(std::vector<std::string>& toks){
 }
 }
 
-std::string expandVariables(const std::string& token){
-    std::string result;
-    size_t i = 0;
 
-    while(i < token.size()){
-
-        // ${VAR}
-        if(token[i] == '$' &&
-           i + 1 < token.size() &&
-           token[i + 1] == '{'){
-
-            i += 2;   // skip "${"
-
-            std::string name;
-
-            while(i < token.size() && token[i] != '}'){
-                name += token[i];
-                i++;
-            }
-
-            // skip '}'
-            if(i < token.size() && token[i] == '}')
-                i++;
-
-            if(shellVars.count(name))
-                result += shellVars[name];
-        }
-
-        // $VAR
-        else if(token[i] == '$'){
-            i++;   // skip $
-
-            std::string name;
-
-            while(i < token.size() &&
-                  (isalnum(token[i]) || token[i] == '_')){
-                name += token[i];
-                i++;
-            }
-
-            if(shellVars.count(name))
-                result += shellVars[name];
-        }
-
-        else{
-            result += token[i];
-            i++;
-        }
-    }
-
-    return result;
-}
 
 int main() {
   // Flush after every std::cout / std:cerr
@@ -968,10 +600,9 @@ int main() {
                 newNumber++;
             }
 
-        Job newJob = {newNumber, pid, cmdStr, "Running"};
-        jobs.push_back(newJob);
+                    int jobNumber = addJob(pid, cmdStr);
                     // then print using the stored job number
-                    std::cout << "[" << newJob.number << "] " << pid << "\n";
+                    std::cout << "[" << jobNumber << "] " << pid << "\n";
                     std::cout.flush();
 
                    // nextJobNumber++;  // increment for next job
