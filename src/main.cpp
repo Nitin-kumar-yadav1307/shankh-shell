@@ -18,6 +18,9 @@
 #include "variables/variable_manager.h"
 #include "jobs/job_manager.h"
 #include "completion/completion.h"
+#include "builtins/pwd.h"
+#include "builtins/cd.h"
+#include "builtins/echo.h"
 #include <algorithm>
 
 
@@ -334,35 +337,23 @@ int main() {
     }
     break;
    }
-   else if(command == "echo"){
-
-    for(size_t i= 1 ; i<tokens.size();i++ ){
-      if (i > 1) std::cout << " ";
-        std::cout << tokens[i];
+  else if(command == "echo"){
+    builtinEcho(tokens);
     }
-
-     std::cout  << std::endl;
-   }
     else if(command == "pwd"){
-        
-        char buffer[PATH_MAX];    
-        if(getcwd(buffer, sizeof(buffer)) != nullptr){
-        std::cout << buffer << std::endl;
-    } else {
-        std::cerr << "pwd: error getting directory" << std::endl;
-    }   
-   }    
+         builtinPwd();
+       
+    } 
+ else if(command == "cd"){
+    std::string path = "~";
 
-   else if(command == "cd"){
-    std::string path = tokens[1];
-    if(path == "~"){
-        path = getenv("HOME");
+    if(tokens.size() > 1)
+    {
+        path = tokens[1];
     }
-    int result =  chdir(path.c_str()) ;
-     if(result == -1){
-        std::cout<<"cd: "<<path<<": "<<"No such file or directory"<<std::endl;
-     } 
-   }
+
+    builtinCd(path);
+}
 
     else if (command == "type") {
             if (tokens.size() < 2) continue;
