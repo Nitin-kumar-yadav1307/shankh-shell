@@ -1,4 +1,5 @@
 #include "variable_manager.h"
+#include <iostream>
 
 std::map<std::string, std::string> shellVars;
 
@@ -67,4 +68,34 @@ std::string expandVariables(const std::string& token){
     }
 
     return result;
+}
+
+void builtinDeclare(const std::vector<std::string>& tokens){
+    if(tokens.size() >= 2 && tokens[1] == "-p"){
+        // print variable
+        if(tokens.size() >= 3){
+            std::string varName = tokens[2];
+            if(shellVars.count(varName) > 0){
+                std::cout << "declare -- " << varName
+                          << "=\"" << shellVars[varName] 
+                          << "\"\n";
+            } else {
+                std::cout << "declare: " << varName 
+                          << ": not found\n";
+            }
+        }
+    }
+    else if(tokens.size() >= 2 && tokens[1].find('=') != std::string::npos){
+        // store variable
+        size_t eqPos = tokens[1].find('=');
+        std::string name  = tokens[1].substr(0, eqPos);
+        std::string value = tokens[1].substr(eqPos + 1);
+        // validate name first
+    if(!isValidIdentifier(name)){
+        std::cout << "declare: `" << tokens[1] 
+                  << "': not a valid identifier\n";
+    } else {
+        shellVars[name] = value;  // only store if valid
+    }
+    }
 }

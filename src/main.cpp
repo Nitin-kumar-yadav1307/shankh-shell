@@ -21,6 +21,7 @@
 #include "builtins/pwd.h"
 #include "builtins/cd.h"
 #include "builtins/echo.h"
+#include "builtins/type.h"
 #include <algorithm>
 
 
@@ -356,21 +357,8 @@ int main() {
 }
 
     else if (command == "type") {
-            if (tokens.size() < 2) continue;
-            std::string target = tokens[1];
-
-            if (target == "echo" || target == "exit" || target == "type" || target == "pwd" || target == "cd" || target == "complete"  || target == "jobs" || target == "history" || target == "declare") {
-                std::cout << target << " is a shell builtin" << std::endl;
-            } else {
-                std::string path = findInPath(target);
-                if (!path.empty()) {
-                    std::cout << target << " is " << path << std::endl;
-                } else {
-                    std::cout << target << ": not found" << std::endl;
-                }
-            }
+             builtinType(tokens);
         }
-
         else if(command == "complete"){
     if(tokens[1] == "-C" && tokens.size() >= 4){
         // tokens[2] = path, tokens[3] = command
@@ -394,45 +382,9 @@ int main() {
     }
      else if(command == "jobs"){
     // check status of all jobs first
-    for(auto& job : jobs){
-        int status;
-        pid_t result = waitpid(job.pid, &status, WNOHANG);
-        if(result == job.pid && WIFEXITED(status)){
-            job.status = "Done";
-        }
+    printJobs();
+   
     }
-
-    // print ALL jobs in order (Running and Done together)
-    int total = jobs.size();
-    for(int i = 0; i < total; i++){
-        auto& job = jobs[i];
-
-        char marker;
-        if(i == total - 1)       marker = '+';
-        else if(i == total - 2)  marker = '-';
-        else                     marker = ' ';
-
-        std::string cmd = job.command;
-        if(job.status == "Done" && cmd.size() >= 2 
-           && cmd.substr(cmd.size()-2) == " &")
-            cmd = cmd.substr(0, cmd.size()-2);
-
-        std::string status = job.status;
-        while(status.length() < 24) status += " ";
-
-        std::cout << "[" << job.number << "]"
-                  << marker << "  "
-                  << status
-                  << cmd << "\n";
-    }
-
-    // remove Done jobs after printing
-    jobs.erase(
-        std::remove_if(jobs.begin(), jobs.end(),
-            [](const Job& j){ return j.status == "Done"; }),
-        jobs.end()
-    );
-}
 
        else if(command == "history"){
 
@@ -495,33 +447,7 @@ int main() {
     
 }
    else if(command == "declare"){
-    if(tokens.size() >= 2 && tokens[1] == "-p"){
-        // print variable
-        if(tokens.size() >= 3){
-            std::string varName = tokens[2];
-            if(shellVars.count(varName) > 0){
-                std::cout << "declare -- " << varName
-                          << "=\"" << shellVars[varName] 
-                          << "\"\n";
-            } else {
-                std::cout << "declare: " << varName 
-                          << ": not found\n";
-            }
-        }
-    }
-    else if(tokens.size() >= 2 && tokens[1].find('=') != std::string::npos){
-        // store variable
-        size_t eqPos = tokens[1].find('=');
-        std::string name  = tokens[1].substr(0, eqPos);
-        std::string value = tokens[1].substr(eqPos + 1);
-        // validate name first
-    if(!isValidIdentifier(name)){
-        std::cout << "declare: `" << tokens[1] 
-                  << "': not a valid identifier\n";
-    } else {
-        shellVars[name] = value;  // only store if valid
-    }
-    }
+       builtinDeclare(tokens);
 }
 
 

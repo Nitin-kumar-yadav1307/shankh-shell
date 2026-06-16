@@ -18,3 +18,5 @@ extern std::vector<Job> jobs;
 void reapJobs();
 
 int addJob(pid_t pid, const std::string& command);
+
+void printJobs();
