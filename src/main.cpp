@@ -22,6 +22,7 @@
 #include "builtins/cd.h"
 #include "builtins/echo.h"
 #include "builtins/type.h"
+#include "builtins/history.h"
 #include <algorithm>
 
 
@@ -387,68 +388,11 @@ int main() {
     }
 
        else if(command == "history"){
-
-         // handle -r flag
-         if(tokens.size() >= 3 && tokens[1] == "-r"){
-        std::string path = tokens[2];
-        read_history(path.c_str());  // ← reads file into history
+         builtinHistory(tokens);
     }
-     // handle -w flag (write to file)
-    else if(tokens.size() >= 3 && tokens[1] == "-w"){
-        std::string path = tokens[2];
-        write_history(path.c_str());  // ← write in file by taking history from memory!
-    }
-    else if(tokens.size() >= 3 && tokens[1] == "-a"){
-    std::string path = tokens[2];
-    
-    // open file in append mode
-    FILE* f = fopen(path.c_str(), "a");
-    if(f){
-        HIST_ENTRY** histList = history_list();
-        if(histList){
-            // count total
-            int total = 0;
-            while(histList[total] != nullptr) total++;
-            
-            // write only new commands
-            for(int i = lastWrittenIndex; i < total; i++){
-                fprintf(f, "%s\n", histList[i]->line);
-            }
-            
-            // update last written position
-            lastWrittenIndex = total;
-        }
-        fclose(f);
-    }
-}
-    else{
-        HIST_ENTRY** histList = history_list();
-    if(histList){
-        // count total
-        int total = 0;
-        while(histList[total] != nullptr) total++;
-
-        // find start point
-        int start = 0;
-        if(tokens.size() >= 2){
-            int n = std::stoi(tokens[1]);
-            start = total - n;
-            if(start < 0) start = 0;
-        }
-
-        // print
-        for(int i = start; i < total; i++){
-            std::cout << "    " << (i+1) << "  "
-                      << histList[i]->line << "\n";
-        }
-    }
-
-    }
-    
-}
    else if(command == "declare"){
        builtinDeclare(tokens);
-}
+    }
 
 
         // --- External programs ---
