@@ -1045,3 +1045,10 @@ dkms.conf
 *.dis
 
 vcpkg_installed
+
+build/
+shell
+
+# test files
+*.txt
+

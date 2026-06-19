@@ -23,6 +23,8 @@
 #include "builtins/echo.h"
 #include "builtins/type.h"
 #include "builtins/history.h"
+#include "builtins/builtin_registry.h"
+#include "executor/pipeline_executor.h"
 #include <algorithm>
 
 
@@ -49,51 +51,11 @@ int lastWrittenIndex = 0;
 
 
 
-bool isBuiltin(const std::string& cmd){
-    return cmd=="echo" || cmd=="pwd" || 
-           cmd=="type" || cmd=="cd"  ||
-           cmd=="exit" || cmd=="jobs"|| 
-           cmd=="history" || cmd=="declare";
-}
 
 
 
 
-void runBuiltin(std::vector<std::string>& toks){
-    if(toks[0] == "echo"){
-        for(size_t i = 1; i < toks.size(); i++){
-            if(i > 1) std::cout << " ";
-            std::cout << toks[i];
-        }
-        std::cout << "\n";
-    }
-    else if(toks[0] == "pwd"){
-        char buf[PATH_MAX];
-        getcwd(buf, sizeof(buf));
-        std::cout << buf << "\n";
-    }
-    else if(toks[0] == "type"){
-        std::string target = toks[1];
-        if(isBuiltin(target))
-            std::cout << target << " is a shell builtin\n";
-        else {
-            std::string path = findInPath(target);
-            if(!path.empty())
-                std::cout << target << " is " << path << "\n";
-            else
-                std::cout << target << ": not found\n";
-        }
-    }
-    else if(toks[0] == "history"){
-    HIST_ENTRY** histList = history_list();
-    if(histList){
-        for(int i = 0; histList[i] != nullptr; i++){
-            std::cout << "    " << (i+1) << "  " 
-                      << histList[i]->line << "\n";
-        }
-    }
-}
-}
+
 
 
 
@@ -220,112 +182,8 @@ int main() {
           int fd = -1;
 
         if(pipeIndex != -1){
-            // Step 1: split all tokens by |
-            std::vector<std::vector<std::string>> commands;
-            std::vector<std::string> current;
-            for(auto& token : tokens){
-                if(token == "|"){
-                    commands.push_back(current);
-                    current.clear();
-                } else {
-                    current.push_back(token);
-                }
-            }
-            commands.push_back(current);  // last command
-
-            int numCmds = commands.size();
-            int numPipes = numCmds - 1;
-
-            // Step 2: create all pipes
-            std::vector<std::array<int,2>> pipes(numPipes);
-            for(int i = 0; i < numPipes; i++){
-                pipe(pipes[i].data());
-            }
-
-            // Step 3: fork each command
-            std::vector<pid_t> pids;
-            for(int i = 0; i < numCmds; i++){
-                pid_t pid = fork();
-
-                if(pid == 0){
-                    // if not first → read from previous pipe
-                    if(i > 0){
-                        dup2(pipes[i-1][0], 0);
-                    }
-                    // if not last → write to next pipe
-                    if(i < numCmds - 1){
-                        dup2(pipes[i][1], 1);
-                    }
-                    // close ALL pipe ends
-                    for(int j = 0; j < numPipes; j++){
-                        close(pipes[j][0]);
-                        close(pipes[j][1]);
-                    }
-                    // run command
-                    if(isBuiltin(commands[i][0])){
-                        runBuiltin(commands[i]);
-                        exit(0);
-                    } else {
-                        std::string path = findInPath(commands[i][0]);
-                        std::vector<char*> argv;
-                        for(auto& t : commands[i])
-                            argv.push_back(const_cast<char*>(t.c_str()));
-                        argv.push_back(nullptr);
-                        execv(path.c_str(), argv.data());
-                        exit(1);
-                    }
-                }
-                pids.push_back(pid);
-            }
-
-            // Step 4: parent closes ALL pipes
-            for(int i = 0; i < numPipes; i++){
-                close(pipes[i][0]);
-                close(pipes[i][1]);
-            }
-
-            // Step 5: wait for ALL children
-            for(pid_t p : pids){
-                waitpid(p, nullptr, 0);
-            }
-
-            continue;  // skip rest of loop
-        }
-        else{
-            
-        if(indextoken != -1){
-             tokens.erase(tokens.begin() + indextoken+1);  // erase filename
-            tokens.erase(tokens.begin() + indextoken);  // erase operator
-        }
-
-         if(stderrIndexToken != -1){
-             tokens.erase(tokens.begin() + stderrIndexToken+1);  // erase filename
-            tokens.erase(tokens.begin() + stderrIndexToken);  // erase operator
-        }
-
-         
-  if(!redirectFile.empty()){
-    int flags = O_WRONLY | O_CREAT | (appendMode ? O_APPEND : O_TRUNC);
-   fd = open(redirectFile.c_str(), flags, 0644);
-    if (fd != -1) {
-            savedStdout = dup(1);
-            dup2(fd, 1);
-            close(fd);
-        }
-}
-       
-    
-    if (!stderrRedirectFile.empty()) {
-        int stderrFlags = O_WRONLY | O_CREAT | (stderrAppendMode ? O_APPEND : O_TRUNC);
-        int stderrFd = open(stderrRedirectFile.c_str(), stderrFlags, 0644);
-    if (stderrFd != -1) {
-        savedStderr = dup(2);
-        dup2(stderrFd, 2);
-        close(stderrFd);
-    }
-}
-
-  
+             executePipeline(tokens);
+            continue;
 
         }
 
@@ -339,63 +197,11 @@ int main() {
     }
     break;
    }
-  else if(command == "echo"){
-    builtinEcho(tokens);
-    }
-    else if(command == "pwd"){
-         builtinPwd();
        
-    } 
- else if(command == "cd"){
-    std::string path = "~";
-
-    if(tokens.size() > 1)
-    {
-        path = tokens[1];
+     else if(isBuiltin(command)){
+    runBuiltin(tokens);
     }
 
-    builtinCd(path);
-}
-
-    else if (command == "type") {
-             builtinType(tokens);
-        }
-        else if(command == "complete"){
-    if(tokens[1] == "-C" && tokens.size() >= 4){
-        // tokens[2] = path, tokens[3] = command
-        completionSpecs[tokens[3]] = tokens[2];  // store
-        // no output
-    }
-    else if(tokens[1] == "-p" && tokens.size() >= 3){
-        std::string cmd = tokens[2];
-        if(completionSpecs.count(cmd) > 0){
-            // found → print it
-            std::cout << "complete -C '" << completionSpecs[cmd] << "' " << cmd << std::endl;
-        } else {
-            // not found 
-            std::cout << "complete: " << cmd << ": no completion specification" << std::endl;
-        }
-    }
-     else if(tokens[1] == "-r" && tokens.size() >= 3){  
-        completionSpecs.erase(tokens[2]);               // ← removes from map
-    }
-    
-    }
-     else if(command == "jobs"){
-    // check status of all jobs first
-    printJobs();
-   
-    }
-
-       else if(command == "history"){
-         builtinHistory(tokens);
-    }
-   else if(command == "declare"){
-       builtinDeclare(tokens);
-    }
-
-
-        // --- External programs ---
         else {
             std::string fullPath = findInPath(command);
 
