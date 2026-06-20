@@ -1,0 +1,13 @@
+#pragma once
+
+#include <vector>
+#include <string>
+
+void executeExternal(
+    const std::vector<std::string>& tokens,
+    bool background,
+    const std::string& redirectFile,
+    bool appendMode,
+    const std::string& stderrRedirectFile,
+    bool stderrAppendMode
+);

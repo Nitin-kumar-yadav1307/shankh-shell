@@ -25,6 +25,8 @@
 #include "builtins/history.h"
 #include "builtins/builtin_registry.h"
 #include "executor/pipeline_executor.h"
+#include "executor/external_executor.h"
+#include "executor/redirection.h"
 #include <algorithm>
 
 
@@ -44,16 +46,6 @@ int lastWrittenIndex = 0;
 
 
 //helper-> find path
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -177,9 +169,7 @@ int main() {
            
         }
 
-        int savedStdout = -1;
-        int savedStderr = -1;
-          int fd = -1;
+       
 
         if(pipeIndex != -1){
              executePipeline(tokens);
@@ -203,96 +193,16 @@ int main() {
     }
 
         else {
-            std::string fullPath = findInPath(command);
-
-            if (fullPath.empty()) {
-                std::cout << command << ": command not found" << std::endl;
-            } else {
-                // Build argv array for execv
-                // execv needs: char* argv[] = { program, arg1, arg2, ..., NULL }
-                std::vector<char*> argv;
-                for (auto& token : tokens) {
-                    argv.push_back(const_cast<char*>(token.c_str()));
-                }
-                argv.push_back(nullptr);  // must be null-terminated
-
-                pid_t pid = fork();
-
-                if (pid == 0) {
-
-                  if (!redirectFile.empty()) {
-                        int stdoutFlags = O_WRONLY | O_CREAT | (appendMode ? O_APPEND : O_TRUNC);
-                        int stdoutFd = open(redirectFile.c_str(), stdoutFlags, 0644);
-                        dup2(stdoutFd, 1);
-                         close(stdoutFd);
-                        }
-
-                   if (!stderrRedirectFile.empty()) {
-                        int stderrFlags = O_WRONLY | O_CREAT | (stderrAppendMode ? O_APPEND : O_TRUNC);
-                        int stderrFd = open(stderrRedirectFile.c_str(), stderrFlags, 0644);
-                        dup2(stderrFd, 2);
-                        close(stderrFd);
-                    }
-                    // Child process: replace itself with the program
-                    execv(fullPath.c_str(), argv.data());
-                    // execv only returns if it FAILED
-                    std::cerr << "execv failed" << std::endl;
-                    exit(1);
-                } else if (pid > 0) {
-                    // Parent process: wait for child to finish
-                   
-                   if (background) {
-                      // build command string
-                         std::string cmdStr = "";
-                        for(size_t i = 0; i < tokens.size(); i++){
-                         if(i > 0) cmdStr += " ";
-                        cmdStr += tokens[i];
-                        }
-                        cmdStr += " &";
-
-                        
-
-                        // store job first
-                    // find smallest available job number
-            int newNumber = 1;
-            while(true){
-                bool taken = false;
-                for(auto& j : jobs){
-                if(j.number == newNumber){
-                    taken = true;
-                    break;
-                    }
-                }
-                if(!taken) break;
-                newNumber++;
-            }
-
-                    int jobNumber = addJob(pid, cmdStr);
-                    // then print using the stored job number
-                    std::cout << "[" << jobNumber << "] " << pid << "\n";
-                    std::cout.flush();
-
-                   // nextJobNumber++;  // increment for next job
-                    }
-                   else{
-                        int status;
-                        waitpid(pid, &status, 0);
-                   }
-                   
-                } else {
-                    std::cerr << "fork failed" << std::endl;
-                   
-                }
-            }
+            executeExternal(
+        tokens,
+        background,
+        redirectFile,
+        appendMode,
+        stderrRedirectFile,
+        stderrAppendMode
+    );
         }
 
-        if(savedStdout != -1){
-            dup2(savedStdout, 1);
-            close(savedStdout);
-        }
-        if (savedStderr != -1) {
-       dup2(savedStderr, 2);
-       close(savedStderr);
-       }
+      
     }
 }
