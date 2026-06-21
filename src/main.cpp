@@ -27,6 +27,7 @@
 #include "executor/pipeline_executor.h"
 #include "executor/external_executor.h"
 #include "executor/redirection.h"
+#include "aliases/alias_manager.h"
 #include <algorithm>
 
 
@@ -106,6 +107,9 @@ int main() {
      if (input.empty()) continue;
 
         std::vector<std::string> tokens = splitInput(input);
+
+        // alias expansion
+        expandAlias(tokens);
        
 
         // expand variables
@@ -194,13 +198,13 @@ int main() {
 
         else {
             executeExternal(
-        tokens,
-        background,
-        redirectFile,
-        appendMode,
-        stderrRedirectFile,
-        stderrAppendMode
-    );
+                tokens,
+                background,
+                redirectFile,
+                appendMode,
+                stderrRedirectFile,
+                stderrAppendMode  );
+                           
         }
 
       
