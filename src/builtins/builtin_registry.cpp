@@ -6,6 +6,7 @@
 #include "type.h"
 #include "history.h"
 #include "alias.h"
+#include "export.h"
 
 #include "../variables/variable_manager.h"
 #include "../jobs/job_manager.h"
@@ -22,6 +23,7 @@ bool isBuiltin(const std::string& cmd)
            cmd=="history" ||
            cmd == "complete" ||
            cmd == "alias" ||
+           cmd == "export" ||
            cmd=="declare";
 }
 
@@ -70,5 +72,9 @@ void runBuiltin(std::vector<std::string>& toks)
     else if(toks[0] == "alias")
     {
         builtinAlias(toks);
+    }
+    else if(toks[0] == "export")
+    {
+        builtinExport(toks);
     }
 }
