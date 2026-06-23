@@ -40,3 +40,8 @@ bool hasAlias(const std::string& name){
 std::string getAlias(const std::string& name){
     return aliases[name];
 }
+
+void removeAlias(const std::string& name)
+{
+    aliases.erase(name);
+}

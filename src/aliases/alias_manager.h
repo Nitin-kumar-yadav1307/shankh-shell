@@ -15,3 +15,5 @@ void addAlias(const std::string& name,const std::string& value);
 bool hasAlias(const std::string& name);
 
 std::string getAlias(const std::string& name);
+
+void removeAlias(const std::string& name);
