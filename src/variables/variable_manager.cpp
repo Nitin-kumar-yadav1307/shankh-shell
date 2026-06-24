@@ -1,4 +1,5 @@
 #include "variable_manager.h"
+#include <cstdlib>
 #include <iostream>
 
 std::map<std::string, std::string> shellVars;
@@ -42,7 +43,16 @@ std::string expandVariables(const std::string& token){
                 i++;
 
             if(shellVars.count(name))
+            {
                 result += shellVars[name];
+            }
+            else
+            {
+                char* env = getenv(name.c_str());
+
+                if(env)
+                    result += env;
+            }
         }
 
         // $VAR
@@ -58,7 +68,16 @@ std::string expandVariables(const std::string& token){
             }
 
             if(shellVars.count(name))
+            {
                 result += shellVars[name];
+            }
+            else
+            {
+                char* env = getenv(name.c_str());
+
+                if(env)
+                    result += env;
+            }
         }
 
         else{
