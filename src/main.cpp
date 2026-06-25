@@ -53,6 +53,13 @@ int main() {
     if(histFile){
         read_history(histFile);  // load from file
     }
+    char* home = getenv("HOME");
+
+    if(home)
+    {
+        std::string rcFile = std::string(home) + "/.shankhrc";
+            executeCommand("source " + rcFile);
+    }
 
   while(true)
 {
