@@ -8,6 +8,7 @@
 #include "alias.h"
 #include "export.h"
 #include "unalias.h"
+#include "source.h"
 
 #include "../variables/variable_manager.h"
 #include "../jobs/job_manager.h"
@@ -26,6 +27,7 @@ bool isBuiltin(const std::string& cmd)
            cmd == "alias" ||
            cmd == "export" ||
            cmd == "unalias" ||
+           cmd == "source" ||
            cmd=="declare";
 }
 
@@ -82,5 +84,9 @@ void runBuiltin(std::vector<std::string>& toks)
     else if(toks[0] == "unalias")
     {
         builtinUnalias(toks);
+    }
+    else if(toks[0] == "source")
+    {
+        builtinSource(toks);
     }
 }
