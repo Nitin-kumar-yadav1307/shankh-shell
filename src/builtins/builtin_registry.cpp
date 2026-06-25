@@ -9,6 +9,7 @@
 #include "export.h"
 #include "unalias.h"
 #include "source.h"
+#include "fg.h"
 
 #include "../variables/variable_manager.h"
 #include "../jobs/job_manager.h"
@@ -28,6 +29,7 @@ bool isBuiltin(const std::string& cmd)
            cmd == "export" ||
            cmd == "unalias" ||
            cmd == "source" ||
+           cmd=="fg"||
            cmd=="declare";
 }
 
@@ -88,5 +90,9 @@ void runBuiltin(std::vector<std::string>& toks)
     else if(toks[0] == "source")
     {
         builtinSource(toks);
+    }
+    else if(toks[0] == "fg")
+    {
+        builtinFg(toks);
     }
 }

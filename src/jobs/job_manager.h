@@ -19,4 +19,10 @@ void reapJobs();
 
 int addJob(pid_t pid, const std::string& command);
 
+Job* getJobByNumber(int number);
+
+Job* getLastJob();
+
+void removeJob(pid_t pid);
+
 void printJobs();

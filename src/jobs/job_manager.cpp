@@ -69,6 +69,39 @@ void reapJobs(){
 
 }
 
+   Job* getLastJob()
+    {
+        if(jobs.empty())
+            return nullptr;
+
+        return &jobs.back();
+    }
+
+    Job* getJobByNumber(int number)
+    {
+        for(auto& job : jobs)
+        {
+            if(job.number == number)
+                return &job;
+        }
+
+        return nullptr;
+    }
+
+    void removeJob(pid_t pid)
+    {
+        jobs.erase(
+            std::remove_if(
+                jobs.begin(),
+                jobs.end(),
+                [pid](const Job& job)
+                {
+                    return job.pid == pid;
+                }),
+            jobs.end()
+        );
+    }
+
 void printJobs()
 {
      for(auto& job : jobs){
