@@ -27,6 +27,7 @@ int lastWrittenIndex = 0;
 //std::map<std::string, std::string> shellVars;
 
 int main() {
+    setupSignalHandlers();
   // Flush after every std::cout / std:cerr
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
@@ -78,4 +79,5 @@ int main() {
 
     executeCommand(input);
 }
+  return 0;
 }

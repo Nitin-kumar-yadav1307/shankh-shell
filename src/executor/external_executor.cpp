@@ -42,6 +42,12 @@ void executeExternal(
 
     if(pid == 0)
     {
+
+        if(setpgid(0, 0) == -1)
+            {
+                perror("setpgid");
+                exit(1);
+            }
         RedirectionContext ctx;
 
         applyRedirections(

@@ -1,5 +1,6 @@
 #include "shell.h"
 
+
 #include "parser/parser.h"
 #include "aliases/alias_manager.h"
 #include "variables/variable_manager.h"
@@ -10,6 +11,27 @@
 #include <readline/history.h>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <csignal>
+
+void handleSigInt(int sig) {
+    // When Ctrl+C is pressed, we want to move to a new line and show the prompt.
+    // Note: If you have a custom prompt string, replace "shankh> " with yours.
+    std::cout << "\n$ ";; 
+    
+    // Force the output to display immediately
+    std::cout.flush(); 
+}
+
+void setupSignalHandlers() {
+    // Catch Ctrl+C and route it to our custom handler
+    signal(SIGINT, handleSigInt);
+    
+    // Ignore Ctrl+\ (Quit) and Ctrl+Z (Suspend) so the shell itself doesn't stop
+    // Note: Child processes will still receive these signals, which is correct!
+    signal(SIGQUIT, SIG_IGN);
+    signal(SIGTSTP, SIG_IGN);
+}
 
 void executeCommand(const std::string& input)
 {
