@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-void executeExternal(
+int executeExternal(
     const std::vector<std::string>& tokens,
     bool background,
     const std::string& redirectFile,
