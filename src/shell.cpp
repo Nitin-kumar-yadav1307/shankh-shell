@@ -7,6 +7,7 @@
 #include "builtins/builtin_registry.h"
 #include "executor/pipeline_executor.h"
 #include "executor/external_executor.h"
+#include "utils/path_utils.h"
 
 #include <readline/history.h>
 #include <string>
@@ -55,6 +56,8 @@ void executeCommand(const std::string& input)
             token = expandVariables(token);
         }
     }
+    
+     expandGlobs(tokens);
 
     if(tokens.empty())
         return;
