@@ -1,5 +1,4 @@
 #pragma once
-
 #include <vector>
 #include <string>
 
@@ -9,5 +8,6 @@ int executeExternal(
     const std::string& redirectFile,
     bool appendMode,
     const std::string& stderrRedirectFile,
-    bool stderrAppendMode
+    bool stderrAppendMode,
+    bool duplicateStderr 
 );

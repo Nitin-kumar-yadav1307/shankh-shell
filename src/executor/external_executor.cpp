@@ -15,7 +15,9 @@ int executeExternal(
     const std::string& redirectFile,
     bool appendMode,
     const std::string& stderrRedirectFile,
-    bool stderrAppendMode
+    bool stderrAppendMode,
+    bool duplicateStderr = false
+
 )
 {
     std::string fullPath = findInPath(tokens[0]);
@@ -45,13 +47,16 @@ int executeExternal(
             perror("setpgid");
             exit(1);
         }
+        
         RedirectionContext ctx;
 
+        // YEH WALA FUNCTION CALL MISSING THA!
         applyRedirections(
             redirectFile,
             appendMode,
             stderrRedirectFile,
             stderrAppendMode,
+            duplicateStderr,
             ctx
         );
 

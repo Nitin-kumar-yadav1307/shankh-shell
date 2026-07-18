@@ -114,6 +114,7 @@ int executeSingleCommand(std::vector<std::string>& tokens)
     bool appendMode = false;
     bool stderrAppendMode = false;
     bool background = false;
+    bool duplicateStderr = false;
 
     if(!tokens.empty() && tokens.back() == "&")
     {
@@ -138,31 +139,63 @@ int executeSingleCommand(std::vector<std::string>& tokens)
             pipeIndex = i;
             break;
         }
-        if(tokens[i] == "2>>")
+        
+        // 1. Check for split "2>&1" (2>, &, 1)
+        if(tokens[i] == "2>" && i + 2 < tokens.size() && tokens[i+1] == "&" && tokens[i+2] == "1")
+        {
+            duplicateStderr = true;
+            tokens.erase(tokens.begin() + i, tokens.begin() + i + 3); // 3 tokens delete
+            i--; 
+            continue;
+        }
+
+        // 2. Check for intact "2>&1" (Just in case)
+        if(tokens[i] == "2>&1")
+        {
+            duplicateStderr = true;
+            tokens.erase(tokens.begin() + i);
+            i--; 
+            continue;
+        }
+
+        // 3. Stderr Append Mode (2>>)
+        if(tokens[i] == "2>>" && i + 1 < tokens.size())
         {
             stderrAppendMode = true;
-            stderrIndexToken = i;
             stderrRedirectFile = tokens[i + 1];
-            break;
+            tokens.erase(tokens.begin() + i, tokens.begin() + i + 2);
+            i--;
+            continue;
         }
-        if(tokens[i] == "2>")
+        
+        // 4. Stderr Redirect (2>)
+        if(tokens[i] == "2>" && i + 1 < tokens.size())
         {
             stderrAppendMode = false;
-            stderrIndexToken = i;
             stderrRedirectFile = tokens[i + 1];
-            break;
+            tokens.erase(tokens.begin() + i, tokens.begin() + i + 2);
+            i--;
+            continue;
         }
-        if(tokens[i] == ">>" || tokens[i] == "1>>")
+        
+        // 5. Append Mode (>>)
+        if((tokens[i] == ">>" || tokens[i] == "1>>") && i + 1 < tokens.size())
         {
             appendMode = true;
             redirectFile = tokens[i + 1];
-            break;
+            tokens.erase(tokens.begin() + i, tokens.begin() + i + 2);
+            i--;
+            continue;
         }
-        if(tokens[i] == ">" || tokens[i] == "1>")
+        
+        // 6. Normal Redirect (>)
+        if((tokens[i] == ">" || tokens[i] == "1>") && i + 1 < tokens.size())
         {
             appendMode = false;
             redirectFile = tokens[i + 1];
-            break;
+            tokens.erase(tokens.begin() + i, tokens.begin() + i + 2); // > aur filename delete
+            i--;
+            continue;
         }
     }
 
@@ -187,13 +220,15 @@ int executeSingleCommand(std::vector<std::string>& tokens)
     }
     else{
         // Return the actual exit status up the chain!
+       
         return executeExternal(
             tokens,
             background,
             redirectFile,
             appendMode,
             stderrRedirectFile,
-            stderrAppendMode
+            stderrAppendMode,
+            duplicateStderr
         );
     }
 }

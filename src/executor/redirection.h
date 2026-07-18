@@ -13,6 +13,7 @@ void applyRedirections(
     bool appendMode,
     const std::string& stderrRedirectFile,
     bool stderrAppendMode,
+    bool duplicateStderr,
     RedirectionContext& ctx
 );
 
