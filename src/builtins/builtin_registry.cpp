@@ -11,6 +11,9 @@
 #include "source.h"
 #include "fg.h"
 #include "bg.h"
+#include "jobs.h"
+#include "kill.h" // <-- 1. ADDED HERE
+
 
 #include "../variables/variable_manager.h"
 #include "../jobs/job_manager.h"
@@ -24,6 +27,7 @@ bool isBuiltin(const std::string& cmd)
            cmd=="cd"   ||
            cmd=="exit" ||
            cmd=="jobs" ||
+           cmd=="kill" || // <-- 2. ADDED HERE
            cmd=="history" ||
            cmd == "complete" ||
            cmd == "alias" ||
@@ -76,6 +80,10 @@ void runBuiltin(std::vector<std::string>& toks)
     else if(toks[0] == "jobs")
     {
         printJobs();
+    }
+    else if(toks[0] == "kill") // <-- 3. ADDED HERE
+    {
+        builtinKill(toks);
     }
     else if(toks[0] == "alias")
     {
