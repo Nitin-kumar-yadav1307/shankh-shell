@@ -12,7 +12,9 @@
 #include "fg.h"
 #include "bg.h"
 #include "jobs.h"
-#include "kill.h" // <-- 1. ADDED HERE
+#include "kill.h" 
+#include "env.h"
+#include "unset.h"
 
 
 #include "../variables/variable_manager.h"
@@ -27,7 +29,9 @@ bool isBuiltin(const std::string& cmd)
            cmd=="cd"   ||
            cmd=="exit" ||
            cmd=="jobs" ||
-           cmd=="kill" || // <-- 2. ADDED HERE
+           cmd=="kill" || 
+           cmd=="env" ||
+           cmd=="unset" ||
            cmd=="history" ||
            cmd == "complete" ||
            cmd == "alias" ||
@@ -81,9 +85,17 @@ void runBuiltin(std::vector<std::string>& toks)
     {
         printJobs();
     }
-    else if(toks[0] == "kill") // <-- 3. ADDED HERE
+    else if(toks[0] == "kill") 
     {
         builtinKill(toks);
+    }
+    else if(toks[0] == "env")
+    {
+        builtinEnv(toks);
+    }
+    else if(toks[0] == "unset")
+    {
+        builtinUnset(toks);
     }
     else if(toks[0] == "alias")
     {
