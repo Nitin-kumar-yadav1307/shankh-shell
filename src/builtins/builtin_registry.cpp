@@ -15,6 +15,7 @@
 #include "kill.h" 
 #include "env.h"
 #include "unset.h"
+#include "read.h"
 
 
 #include "../variables/variable_manager.h"
@@ -32,6 +33,7 @@ bool isBuiltin(const std::string& cmd)
            cmd=="kill" || 
            cmd=="env" ||
            cmd=="unset" ||
+           cmd == "read" ||
            cmd=="history" ||
            cmd == "complete" ||
            cmd == "alias" ||
@@ -96,6 +98,10 @@ void runBuiltin(std::vector<std::string>& toks)
     else if(toks[0] == "unset")
     {
         builtinUnset(toks);
+    }
+    else if(toks[0] == "read")
+    {
+        builtinRead(toks);
     }
     else if(toks[0] == "alias")
     {

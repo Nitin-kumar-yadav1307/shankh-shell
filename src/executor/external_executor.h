@@ -9,5 +9,6 @@ int executeExternal(
     bool appendMode,
     const std::string& stderrRedirectFile,
     bool stderrAppendMode,
-    bool duplicateStderr 
-);
+    bool duplicateStderr );
+    
+void executePipeline(const std::vector<std::string>& tokens);

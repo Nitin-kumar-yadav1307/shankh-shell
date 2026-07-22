@@ -7,6 +7,7 @@
 #include "builtins/builtin_registry.h"
 #include "executor/pipeline_executor.h"
 #include "executor/external_executor.h"
+#include "executor/pipeline_executor.h"
 #include "utils/path_utils.h"
 
 #include <readline/history.h>
@@ -14,6 +15,7 @@
 #include <vector>
 #include <iostream>
 #include <csignal>
+#include <algorithm>
 
 void handleSigInt(int sig) {
     // When Ctrl+C is pressed, we want to move to a new line and show the prompt.
