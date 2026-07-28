@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include <string>
 
-void builtinCd(std::string path);
+void builtinCd(const std::vector<std::string>& tokens);

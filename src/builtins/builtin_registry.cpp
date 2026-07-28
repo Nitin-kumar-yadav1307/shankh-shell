@@ -123,6 +123,10 @@ void runBuiltin(std::vector<std::string>& toks)
     {
         builtinFg(toks);
     }
+    else if(toks[0] == "cd")
+    {
+        builtinCd(toks);
+    }
     else if(toks[0] == "bg")
     {
         builtinBg(toks);
