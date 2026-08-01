@@ -60,12 +60,8 @@ void runBuiltin(std::vector<std::string>& toks)
     }
     else if(toks[0] == "cd")
     {
-        std::string path = "~";
-
-        if(toks.size() > 1)
-            path = toks[1];
-
-        builtinCd(path);
+        // Yahan seedha vector pass hoga, baaki sab cd.cpp handle karega
+        builtinCd(toks); 
     }
     else if(toks[0] == "type")
     {
@@ -122,10 +118,6 @@ void runBuiltin(std::vector<std::string>& toks)
     else if(toks[0] == "fg")
     {
         builtinFg(toks);
-    }
-    else if(toks[0] == "cd")
-    {
-        builtinCd(toks);
     }
     else if(toks[0] == "bg")
     {
